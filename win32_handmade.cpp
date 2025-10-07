@@ -1,5 +1,12 @@
 #include <windows.h>
 
+#define internal static
+#define local_persist static
+#define global_persist static
+
+// TODO: This is global for now; Need a proper solution for this;
+global_persist boolean MessageLoopRunning = true;
+
 LRESULT CALLBACK MainWindowCallback(HWND Window, UINT Message, WPARAM WParam,
                                     LPARAM LParam) {
   LRESULT Result = 0;
@@ -11,10 +18,16 @@ LRESULT CALLBACK MainWindowCallback(HWND Window, UINT Message, WPARAM WParam,
   }
   case WM_DESTROY: {
     OutputDebugStringA("WM_DESTROY\n");
+
+    // TODO: Handle this as an error - recreate window?
+    MessageLoopRunning = false;
     break;
   }
   case WM_CLOSE: {
     OutputDebugStringA("WM_CLOSE\n");
+
+    // TODO: Handle this with a message to the users?
+    MessageLoopRunning = false;
     break;
   }
   case WM_ACTIVATEAPP: {
@@ -29,7 +42,7 @@ LRESULT CALLBACK MainWindowCallback(HWND Window, UINT Message, WPARAM WParam,
     LONG Width = Paint.rcPaint.right - Paint.rcPaint.left;
     LONG X = Paint.rcPaint.left;
     LONG Y = Paint.rcPaint.top;
-    static DWORD ColorCode = WHITENESS;
+    local_persist DWORD ColorCode = WHITENESS;
     if (ColorCode == WHITENESS) {
       ColorCode = BLACKNESS;
     } else {
@@ -88,7 +101,7 @@ HWND RegisterAndCreateWindow(HINSTANCE Instance, PWNDCLASSEXA WindowClassPtr) {
 
 void MessageLoop() {
   MSG Message;
-  while (true) {
+  while (MessageLoopRunning) {
     BOOL MessageResult = GetMessage(&Message, 0, 0, 0);
     if (MessageResult > 0) {
       TranslateMessage(&Message);
