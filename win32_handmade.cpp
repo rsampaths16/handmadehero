@@ -6,6 +6,62 @@
 
 // TODO: This is global for now; Need a proper solution for this;
 global_persist boolean MessageLoopRunning = true;
+global_persist BITMAPINFO BitmapInfo = {};
+global_persist void *BitmapMemory = NULL;
+global_persist HBITMAP BitmapHandle = NULL;
+global_persist HDC BitmapDeviceContext = NULL;
+
+internal void Win32ResizeDIBSection(int Width, int Height) {
+
+  if (BitmapHandle != NULL) {
+    /*
+     * TODO: Improve handling for Bitmap buffer memory allocation.
+     *   We can either free the old buffer and wait for new allocation (or)
+     *   Request new buffer, while using the old one and then free it.
+     *
+     *   The former approch would release memory resource to be used in
+     * reallocation, while the latter is faster - but could fail if enough
+     * memory isn't available.
+     *
+     *   For now we're using the former, as we're not sure if the latter would
+     * fail or succeed. Should revisit this later for optimisation.
+     */
+    DeleteObject(BitmapHandle);
+  }
+
+  if (BitmapDeviceContext == NULL) {
+    /*
+     * TODO: Decide if these should be created instead
+     *   We're not sure what happens in cases when monitors are
+     * disconnected/connected window is dragged across monitors ... etc and
+     * other cases.
+     *
+     *   We're reusing the context for now, but will need to decide if it should
+     * be recreated instead
+     */
+    BitmapDeviceContext = CreateCompatibleDC(0);
+  }
+
+  BitmapInfo.bmiHeader.biSize = sizeof(BitmapInfo.bmiHeader);
+  BitmapInfo.bmiHeader.biWidth = Width;
+  BitmapInfo.bmiHeader.biHeight = Height;
+  BitmapInfo.bmiHeader.biPlanes = 1;
+  /*
+   * NOTE: Ideally only needs 24 (3*8bits for RGB)
+   * We're requesting 32bits for DWORD alignment in CPUs
+   */
+  BitmapInfo.bmiHeader.biBitCount = 32;
+  BitmapInfo.bmiHeader.biCompression = BI_RGB;
+
+  BitmapHandle = CreateDIBSection(BitmapDeviceContext, &BitmapInfo,
+                                  DIB_RGB_COLORS, &BitmapMemory, NULL, NULL);
+}
+
+internal void Win32UpdateWindow(HDC DeviceContext, int X, int Y, int Width,
+                                int Height) {
+  StretchDIBits(BitmapDeviceContext, X, Y, Width, Height, X, Y, Width, Height,
+                BitmapMemory, &BitmapInfo, DIB_RGB_COLORS, SRCCOPY);
+}
 
 LRESULT CALLBACK Win32MainWindowCallback(HWND Window, UINT Message,
                                          WPARAM WParam, LPARAM LParam) {
@@ -14,6 +70,13 @@ LRESULT CALLBACK Win32MainWindowCallback(HWND Window, UINT Message,
   switch (Message) {
   case WM_SIZE: {
     OutputDebugStringA("WM_SIZE\n");
+
+    RECT ClientRect;
+    GetClientRect(Window, &ClientRect);
+    LONG Height = ClientRect.bottom - ClientRect.top;
+    LONG Width = ClientRect.right - ClientRect.left;
+    Win32ResizeDIBSection(Width, Height);
+
     break;
   }
   case WM_DESTROY: {
@@ -42,13 +105,7 @@ LRESULT CALLBACK Win32MainWindowCallback(HWND Window, UINT Message,
     LONG Width = Paint.rcPaint.right - Paint.rcPaint.left;
     LONG X = Paint.rcPaint.left;
     LONG Y = Paint.rcPaint.top;
-    local_persist DWORD ColorCode = WHITENESS;
-    if (ColorCode == WHITENESS) {
-      ColorCode = BLACKNESS;
-    } else {
-      ColorCode = WHITENESS;
-    }
-    PatBlt(DeviceContext, X, Y, Width, Height, ColorCode);
+    Win32UpdateWindow(DeviceContext, X, Y, Width, Height);
     EndPaint(Window, &Paint);
     break;
   }
