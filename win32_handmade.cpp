@@ -7,8 +7,8 @@
 // TODO: This is global for now; Need a proper solution for this;
 global_persist boolean MessageLoopRunning = true;
 
-LRESULT CALLBACK MainWindowCallback(HWND Window, UINT Message, WPARAM WParam,
-                                    LPARAM LParam) {
+LRESULT CALLBACK Win32MainWindowCallback(HWND Window, UINT Message,
+                                         WPARAM WParam, LPARAM LParam) {
   LRESULT Result = 0;
 
   switch (Message) {
@@ -62,11 +62,11 @@ LRESULT CALLBACK MainWindowCallback(HWND Window, UINT Message, WPARAM WParam,
   return Result;
 }
 
-WNDCLASSEXA ConstructMainWindowClass(HINSTANCE Instance) {
+WNDCLASSEXA Win32ConstructMainWindowClass(HINSTANCE Instance) {
   WNDCLASSEXA WindowClass = {};
   WindowClass.cbSize = sizeof(WNDCLASSEXA);
   WindowClass.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
-  WindowClass.lpfnWndProc = MainWindowCallback;
+  WindowClass.lpfnWndProc = Win32MainWindowCallback;
   WindowClass.hInstance = Instance;
   WindowClass.lpszClassName = "HandmadeHeroWindowClass";
 
@@ -76,7 +76,8 @@ WNDCLASSEXA ConstructMainWindowClass(HINSTANCE Instance) {
   return WindowClass;
 }
 
-HWND RegisterAndCreateWindow(HINSTANCE Instance, PWNDCLASSEXA WindowClassPtr) {
+HWND Win32RegisterAndCreateWindow(HINSTANCE Instance,
+                                  PWNDCLASSEXA WindowClassPtr) {
   ATOM WindowClassAtom = RegisterClassExA(WindowClassPtr);
   if (WindowClassAtom != 0) {
     HWND Window = CreateWindowExA(0, "HandmadeHeroWindowClass", "HandemadeHero",
@@ -99,7 +100,7 @@ HWND RegisterAndCreateWindow(HINSTANCE Instance, PWNDCLASSEXA WindowClassPtr) {
   }
 }
 
-void MessageLoop() {
+void Win32MessageLoop() {
   MSG Message;
   while (MessageLoopRunning) {
     BOOL MessageResult = GetMessage(&Message, 0, 0, 0);
@@ -116,11 +117,11 @@ void MessageLoop() {
 
 int APIENTRY WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR Cmdline,
                      int ShowCode) {
-  WNDCLASSEXA WindowClass = ConstructMainWindowClass(Instance);
-  HWND Window = RegisterAndCreateWindow(Instance, &WindowClass);
+  WNDCLASSEXA WindowClass = Win32ConstructMainWindowClass(Instance);
+  HWND Window = Win32RegisterAndCreateWindow(Instance, &WindowClass);
 
   if (Window != NULL) {
-    MessageLoop();
+    Win32MessageLoop();
   }
 
   return 0;
