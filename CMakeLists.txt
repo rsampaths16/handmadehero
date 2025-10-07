@@ -9,7 +9,6 @@ project(
   CXX
 )
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_BUILD_TYPE RelWithDebInfo)
 
 add_executable(HandmadeHero win32_handmade.cpp)

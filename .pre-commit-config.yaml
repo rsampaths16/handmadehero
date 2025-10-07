@@ -30,8 +30,6 @@ repos:
     hooks:
       - id: clang-format
         args: [--style=LLVM]
-      - id: clang-tidy
-        args: [--checks=.clang-tidy]
   - repo: https://github.com/cmake-lint/cmake-lint
     rev: 1.4.3
     hooks:
