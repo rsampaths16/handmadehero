@@ -31,25 +31,12 @@ internal void RenderTestGradient(int XOffset, int YOffset) {
   uint8 *Row = (uint8 *)BitmapMemory;
   for (int Y = 0; Y < BitmapHeight; Y++) {
 
-    uint8 *Pixel = (uint8 *)Row;
+    uint32 *Pixel = (uint32 *)Row;
     for (int X = 0; X < BitmapWidth; X++) {
-      /*
-       * Pixel in memory: BB GG RR xx
-       * 0x RRGGBBxx
-       * LITTLE ENDIAN ARCHITECTURE; The byte order is swapped in windows to
-       * allow RRGGBBxx in register, instead of xxBBGGRR;
-       */
-      *Pixel = (uint8)(X + XOffset);
-      ++Pixel;
+      uint8 Blue = (X + XOffset);
+      uint8 Green = (Y + YOffset);
 
-      *Pixel = (uint8)(Y + YOffset);
-      ++Pixel;
-
-      *Pixel = 0;
-      ++Pixel;
-
-      *Pixel = 0;
-      ++Pixel;
+      *Pixel++ = ((Green << 8) | Blue);
     }
     Row += Pitch;
   }
