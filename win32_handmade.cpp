@@ -93,10 +93,10 @@ internal void Win32ResizeDIBSection(int Width, int Height) {
   RenderTestGradient(0, 0);
 }
 
-internal void Win32UpdateWindow(HDC DeviceContext, RECT *WindowRect, int X,
+internal void Win32UpdateWindow(HDC DeviceContext, RECT *ClientRect, int X,
                                 int Y, int Width, int Height) {
-  int WindowWidth = WindowRect->right - WindowRect->left;
-  int WindowHeight = WindowRect->bottom - WindowRect->top;
+  int WindowWidth = ClientRect->right - ClientRect->left;
+  int WindowHeight = ClientRect->bottom - ClientRect->top;
   StretchDIBits(DeviceContext, 0, 0, BitmapWidth, BitmapHeight, 0, 0,
                 WindowWidth, WindowHeight, BitmapMemory, &BitmapInfo,
                 DIB_RGB_COLORS, SRCCOPY);
