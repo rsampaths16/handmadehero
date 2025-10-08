@@ -1,19 +1,63 @@
+#include <stdint.h>
 #include <windows.h>
 
 #define internal static
 #define local_persist static
 #define global_persist static
 
+typedef int8_t int8;
+typedef int16_t int16;
+typedef int32_t int32;
+typedef int64_t int64;
+
+typedef uint8_t uint8;
+typedef uint16_t uint16;
+typedef uint32_t uint32;
+typedef uint64_t uint64;
+
 // TODO: This is global for now; Need a proper solution for this;
 global_persist boolean MessageLoopRunning = true;
 global_persist BITMAPINFO BitmapInfo = {};
 global_persist void *BitmapMemory = NULL;
-global_persist HBITMAP BitmapHandle = NULL;
-global_persist HDC BitmapDeviceContext = NULL;
+global_persist int BitmapWidth = 0;
+global_persist int BitmapHeight = 0;
+global_persist const int BytesPerPixel = 4;
+
+internal void RenderTestGradient(int XOffset, int YOffset) {
+  int Width = BitmapWidth;
+  int Height = BitmapHeight;
+
+  int Pitch = Width * BytesPerPixel;
+  uint8 *Row = (uint8 *)BitmapMemory;
+  for (int Y = 0; Y < BitmapHeight; Y++) {
+
+    uint8 *Pixel = (uint8 *)Row;
+    for (int X = 0; X < BitmapWidth; X++) {
+      /*
+       * Pixel in memory: BB GG RR xx
+       * 0x RRGGBBxx
+       * LITTLE ENDIAN ARCHITECTURE; The byte order is swapped in windows to
+       * allow RRGGBBxx in register, instead of xxBBGGRR;
+       */
+      *Pixel = (uint8)(X + XOffset);
+      ++Pixel;
+
+      *Pixel = (uint8)(Y + YOffset);
+      ++Pixel;
+
+      *Pixel = 0;
+      ++Pixel;
+
+      *Pixel = 0;
+      ++Pixel;
+    }
+    Row += Pitch;
+  }
+}
 
 internal void Win32ResizeDIBSection(int Width, int Height) {
 
-  if (BitmapHandle != NULL) {
+  if (BitmapMemory != NULL) {
     /*
      * TODO: Improve handling for Bitmap buffer memory allocation.
      *   We can either free the old buffer and wait for new allocation (or)
@@ -26,25 +70,15 @@ internal void Win32ResizeDIBSection(int Width, int Height) {
      *   For now we're using the former, as we're not sure if the latter would
      * fail or succeed. Should revisit this later for optimisation.
      */
-    DeleteObject(BitmapHandle);
+    VirtualFree(BitmapMemory, 0, MEM_RELEASE);
   }
 
-  if (BitmapDeviceContext == NULL) {
-    /*
-     * TODO: Decide if these should be created instead
-     *   We're not sure what happens in cases when monitors are
-     * disconnected/connected window is dragged across monitors ... etc and
-     * other cases.
-     *
-     *   We're reusing the context for now, but will need to decide if it should
-     * be recreated instead
-     */
-    BitmapDeviceContext = CreateCompatibleDC(0);
-  }
+  BitmapWidth = Width;
+  BitmapHeight = Height;
 
   BitmapInfo.bmiHeader.biSize = sizeof(BitmapInfo.bmiHeader);
-  BitmapInfo.bmiHeader.biWidth = Width;
-  BitmapInfo.bmiHeader.biHeight = Height;
+  BitmapInfo.bmiHeader.biWidth = BitmapWidth;
+  BitmapInfo.bmiHeader.biHeight = -BitmapHeight;
   BitmapInfo.bmiHeader.biPlanes = 1;
   /*
    * NOTE: Ideally only needs 24 (3*8bits for RGB)
@@ -53,14 +87,19 @@ internal void Win32ResizeDIBSection(int Width, int Height) {
   BitmapInfo.bmiHeader.biBitCount = 32;
   BitmapInfo.bmiHeader.biCompression = BI_RGB;
 
-  BitmapHandle = CreateDIBSection(BitmapDeviceContext, &BitmapInfo,
-                                  DIB_RGB_COLORS, &BitmapMemory, NULL, NULL);
+  int BitmapMemorySize = (Width * Height) * BytesPerPixel;
+  BitmapMemory = VirtualAlloc(0, BitmapMemorySize, MEM_COMMIT, PAGE_READWRITE);
+
+  RenderTestGradient(0, 0);
 }
 
-internal void Win32UpdateWindow(HDC DeviceContext, int X, int Y, int Width,
-                                int Height) {
-  StretchDIBits(DeviceContext, X, Y, Width, Height, X, Y, Width, Height,
-                BitmapMemory, &BitmapInfo, DIB_RGB_COLORS, SRCCOPY);
+internal void Win32UpdateWindow(HDC DeviceContext, RECT *WindowRect, int X,
+                                int Y, int Width, int Height) {
+  int WindowWidth = WindowRect->right - WindowRect->left;
+  int WindowHeight = WindowRect->bottom - WindowRect->top;
+  StretchDIBits(DeviceContext, 0, 0, BitmapWidth, BitmapHeight, 0, 0,
+                WindowWidth, WindowHeight, BitmapMemory, &BitmapInfo,
+                DIB_RGB_COLORS, SRCCOPY);
 }
 
 LRESULT CALLBACK Win32MainWindowCallback(HWND Window, UINT Message,
@@ -105,7 +144,11 @@ LRESULT CALLBACK Win32MainWindowCallback(HWND Window, UINT Message,
     LONG Width = Paint.rcPaint.right - Paint.rcPaint.left;
     LONG X = Paint.rcPaint.left;
     LONG Y = Paint.rcPaint.top;
-    Win32UpdateWindow(DeviceContext, X, Y, Width, Height);
+
+    RECT ClientRect;
+    GetClientRect(Window, &ClientRect);
+
+    Win32UpdateWindow(DeviceContext, &ClientRect, X, Y, Width, Height);
     EndPaint(Window, &Paint);
     break;
   }
