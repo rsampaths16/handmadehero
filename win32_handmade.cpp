@@ -90,7 +90,7 @@ internal void Win32ResizeDIBSection(int Width, int Height) {
   int BitmapMemorySize = (Width * Height) * BytesPerPixel;
   BitmapMemory = VirtualAlloc(0, BitmapMemorySize, MEM_COMMIT, PAGE_READWRITE);
 
-  RenderTestGradient(0, 0);
+  // TODO: Might want to clear screen to black
 }
 
 internal void Win32UpdateWindow(HDC DeviceContext, RECT *ClientRect, int X,
@@ -200,18 +200,33 @@ HWND Win32RegisterAndCreateWindow(HINSTANCE Instance,
   }
 }
 
-void Win32MessageLoop() {
+void Win32MessageLoop(HWND Window) {
   MSG Message;
+  int XOffset = 0;
+  int YOffset = 0;
+
   while (MessageLoopRunning) {
-    BOOL MessageResult = GetMessage(&Message, 0, 0, 0);
-    if (MessageResult > 0) {
+    while (PeekMessage(&Message, 0, 0, 0, PM_REMOVE)) {
+      if (Message.message == WM_QUIT) {
+        MessageLoopRunning = false;
+      }
+
       TranslateMessage(&Message);
       DispatchMessage(&Message);
-    } else {
-      // TODO: Handle / log message retrival failures
-      OutputDebugStringA("Failure in message retrival\n");
-      break;
     }
+
+    RenderTestGradient(XOffset, YOffset);
+
+    HDC DeviceContext = GetDC(Window);
+    RECT ClientRect;
+    GetClientRect(Window, &ClientRect);
+    int WindowWidth = ClientRect.right - ClientRect.left;
+    int WindowHeight = ClientRect.bottom - ClientRect.top;
+    Win32UpdateWindow(DeviceContext, &ClientRect, 0, 0, WindowWidth,
+                      WindowHeight);
+    ReleaseDC(Window, DeviceContext);
+
+    ++XOffset;
   }
 }
 
@@ -221,7 +236,7 @@ int APIENTRY WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR Cmdline,
   HWND Window = Win32RegisterAndCreateWindow(Instance, &WindowClass);
 
   if (Window != NULL) {
-    Win32MessageLoop();
+    Win32MessageLoop(Window);
   }
 
   return 0;
