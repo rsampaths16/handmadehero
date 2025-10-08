@@ -59,7 +59,7 @@ internal void Win32ResizeDIBSection(int Width, int Height) {
 
 internal void Win32UpdateWindow(HDC DeviceContext, int X, int Y, int Width,
                                 int Height) {
-  StretchDIBits(BitmapDeviceContext, X, Y, Width, Height, X, Y, Width, Height,
+  StretchDIBits(DeviceContext, X, Y, Width, Height, X, Y, Width, Height,
                 BitmapMemory, &BitmapInfo, DIB_RGB_COLORS, SRCCOPY);
 }
 
