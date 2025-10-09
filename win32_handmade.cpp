@@ -80,10 +80,10 @@ internal void Win32ResizeDIBSection(int Width, int Height) {
   // TODO: Might want to clear screen to black
 }
 
-internal void Win32UpdateWindow(HDC DeviceContext, RECT *ClientRect, int X,
+internal void Win32UpdateWindow(HDC DeviceContext, RECT ClientRect, int X,
                                 int Y, int Width, int Height) {
-  int WindowWidth = ClientRect->right - ClientRect->left;
-  int WindowHeight = ClientRect->bottom - ClientRect->top;
+  int WindowWidth = ClientRect.right - ClientRect.left;
+  int WindowHeight = ClientRect.bottom - ClientRect.top;
   StretchDIBits(DeviceContext, 0, 0, BitmapWidth, BitmapHeight, 0, 0,
                 WindowWidth, WindowHeight, BitmapMemory, &BitmapInfo,
                 DIB_RGB_COLORS, SRCCOPY);
@@ -135,7 +135,7 @@ LRESULT CALLBACK Win32MainWindowCallback(HWND Window, UINT Message,
     RECT ClientRect;
     GetClientRect(Window, &ClientRect);
 
-    Win32UpdateWindow(DeviceContext, &ClientRect, X, Y, Width, Height);
+    Win32UpdateWindow(DeviceContext, ClientRect, X, Y, Width, Height);
     EndPaint(Window, &Paint);
     break;
   }
