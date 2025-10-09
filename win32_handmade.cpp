@@ -23,7 +23,7 @@ global_persist int BitmapWidth = 0;
 global_persist int BitmapHeight = 0;
 global_persist const int BytesPerPixel = 4;
 
-internal void RenderTestGradient(int XOffset, int YOffset) {
+internal void RenderTestGradient(int BlueOffset, int GreenOffset) {
   int Width = BitmapWidth;
   int Height = BitmapHeight;
 
@@ -33,8 +33,8 @@ internal void RenderTestGradient(int XOffset, int YOffset) {
 
     uint32 *Pixel = (uint32 *)Row;
     for (int X = 0; X < BitmapWidth; X++) {
-      uint8 Blue = (X + XOffset);
-      uint8 Green = (Y + YOffset);
+      uint8 Blue = (X + BlueOffset);
+      uint8 Green = (Y + GreenOffset);
 
       *Pixel++ = ((Green << 8) | Blue);
     }
