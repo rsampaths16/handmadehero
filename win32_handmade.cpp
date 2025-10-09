@@ -152,7 +152,7 @@ LRESULT CALLBACK Win32MainWindowCallback(HWND Window, UINT Message,
 WNDCLASSEXA Win32ConstructMainWindowClass(HINSTANCE Instance) {
   WNDCLASSEXA WindowClass = {};
   WindowClass.cbSize = sizeof(WNDCLASSEXA);
-  WindowClass.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
+  WindowClass.style = CS_HREDRAW | CS_VREDRAW;
   WindowClass.lpfnWndProc = Win32MainWindowCallback;
   WindowClass.hInstance = Instance;
   WindowClass.lpszClassName = "HandmadeHeroWindowClass";
