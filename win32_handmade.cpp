@@ -107,6 +107,7 @@ internal void Win32DisplayBufferInWindow(HDC DeviceContext, int WindowWidth,
                                          int WindowHeight,
                                          win32_offscreen_buffer Buffer, int X,
                                          int Y, int Width, int Height) {
+  // TODO: Handle aspect ratio correction
   StretchDIBits(DeviceContext, 0, 0, WindowWidth, WindowHeight, 0, 0,
                 Buffer.Width, Buffer.Height, Buffer.Memory, &Buffer.Info,
                 DIB_RGB_COLORS, SRCCOPY);
@@ -119,10 +120,6 @@ LRESULT CALLBACK Win32MainWindowCallback(HWND Window, UINT Message,
   switch (Message) {
   case WM_SIZE: {
     OutputDebugStringA("WM_SIZE\n");
-
-    win32_window_dimension Dimension = Win32GetWindowDimension(Window);
-    Win32ResizeDIBSection(&GlobalBackBuffer, Dimension.Width, Dimension.Height);
-
     break;
   }
   case WM_DESTROY: {
@@ -237,6 +234,7 @@ void Win32MessageLoop(HWND Window) {
 
 int APIENTRY WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR Cmdline,
                      int ShowCode) {
+  Win32ResizeDIBSection(&GlobalBackBuffer, 1280, 720);
   WNDCLASSEXA WindowClass = Win32ConstructMainWindowClass(Instance);
   HWND Window = Win32RegisterAndCreateWindow(Instance, &WindowClass);
 
