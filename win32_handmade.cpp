@@ -15,36 +15,39 @@ typedef uint16_t uint16;
 typedef uint32_t uint32;
 typedef uint64_t uint64;
 
+struct win32_offscreen_buffer {
+  BITMAPINFO Info;
+  void *Memory;
+  int Width;
+  int Height;
+  int Pitch;
+  int BytesPerPixel;
+};
+
 // TODO: This is global for now; Need a proper solution for this;
 global_persist boolean MessageLoopRunning = true;
-global_persist BITMAPINFO BitmapInfo = {};
-global_persist void *BitmapMemory = NULL;
-global_persist int BitmapWidth = 0;
-global_persist int BitmapHeight = 0;
-global_persist const int BytesPerPixel = 4;
+global_persist win32_offscreen_buffer GlobalBackBuffer = {};
 
-internal void RenderTestGradient(int BlueOffset, int GreenOffset) {
-  int Width = BitmapWidth;
-  int Height = BitmapHeight;
-
-  int Pitch = Width * BytesPerPixel;
-  uint8 *Row = (uint8 *)BitmapMemory;
-  for (int Y = 0; Y < BitmapHeight; Y++) {
+internal void RenderTestGradient(win32_offscreen_buffer Buffer, int BlueOffset,
+                                 int GreenOffset) {
+  uint8 *Row = (uint8 *)Buffer.Memory;
+  for (int Y = 0; Y < Buffer.Height; Y++) {
 
     uint32 *Pixel = (uint32 *)Row;
-    for (int X = 0; X < BitmapWidth; X++) {
+    for (int X = 0; X < Buffer.Width; X++) {
       uint8 Blue = (X + BlueOffset);
       uint8 Green = (Y + GreenOffset);
 
       *Pixel++ = ((Green << 8) | Blue);
     }
-    Row += Pitch;
+    Row += Buffer.Pitch;
   }
 }
 
-internal void Win32ResizeDIBSection(int Width, int Height) {
+internal void Win32ResizeDIBSection(win32_offscreen_buffer *Buffer, int Width,
+                                    int Height) {
 
-  if (BitmapMemory != NULL) {
+  if (Buffer->Memory != NULL) {
     /*
      * TODO: Improve handling for Bitmap buffer memory allocation.
      *   We can either free the old buffer and wait for new allocation (or)
@@ -57,35 +60,40 @@ internal void Win32ResizeDIBSection(int Width, int Height) {
      *   For now we're using the former, as we're not sure if the latter would
      * fail or succeed. Should revisit this later for optimisation.
      */
-    VirtualFree(BitmapMemory, 0, MEM_RELEASE);
+    VirtualFree(Buffer->Memory, 0, MEM_RELEASE);
   }
 
-  BitmapWidth = Width;
-  BitmapHeight = Height;
+  Buffer->Width = Width;
+  Buffer->Height = Height;
+  Buffer->BytesPerPixel = 4;
 
-  BitmapInfo.bmiHeader.biSize = sizeof(BitmapInfo.bmiHeader);
-  BitmapInfo.bmiHeader.biWidth = BitmapWidth;
-  BitmapInfo.bmiHeader.biHeight = -BitmapHeight;
-  BitmapInfo.bmiHeader.biPlanes = 1;
+  Buffer->Info.bmiHeader.biSize = sizeof(Buffer->Info.bmiHeader);
+  Buffer->Info.bmiHeader.biWidth = Buffer->Width;
+  Buffer->Info.bmiHeader.biHeight = -Buffer->Height;
+  Buffer->Info.bmiHeader.biPlanes = 1;
   /*
    * NOTE: Ideally only needs 24 (3*8bits for RGB)
    * We're requesting 32bits for DWORD alignment in CPUs
    */
-  BitmapInfo.bmiHeader.biBitCount = 32;
-  BitmapInfo.bmiHeader.biCompression = BI_RGB;
+  Buffer->Info.bmiHeader.biBitCount = 32;
+  Buffer->Info.bmiHeader.biCompression = BI_RGB;
 
-  int BitmapMemorySize = (Width * Height) * BytesPerPixel;
-  BitmapMemory = VirtualAlloc(0, BitmapMemorySize, MEM_COMMIT, PAGE_READWRITE);
+  int BitmapMemorySize =
+      (Buffer->Width * Buffer->Height) * Buffer->BytesPerPixel;
+  Buffer->Memory =
+      VirtualAlloc(0, BitmapMemorySize, MEM_COMMIT, PAGE_READWRITE);
+  Buffer->Pitch = Buffer->Width * Buffer->BytesPerPixel;
 
   // TODO: Might want to clear screen to black
 }
 
-internal void Win32UpdateWindow(HDC DeviceContext, RECT ClientRect, int X,
-                                int Y, int Width, int Height) {
+internal void Win32DisplayBufferInWindow(HDC DeviceContext, RECT ClientRect,
+                                         win32_offscreen_buffer Buffer, int X,
+                                         int Y, int Width, int Height) {
   int WindowWidth = ClientRect.right - ClientRect.left;
   int WindowHeight = ClientRect.bottom - ClientRect.top;
-  StretchDIBits(DeviceContext, 0, 0, BitmapWidth, BitmapHeight, 0, 0,
-                WindowWidth, WindowHeight, BitmapMemory, &BitmapInfo,
+  StretchDIBits(DeviceContext, 0, 0, Buffer.Width, Buffer.Height, 0, 0,
+                WindowWidth, WindowHeight, Buffer.Memory, &Buffer.Info,
                 DIB_RGB_COLORS, SRCCOPY);
 }
 
@@ -101,7 +109,7 @@ LRESULT CALLBACK Win32MainWindowCallback(HWND Window, UINT Message,
     GetClientRect(Window, &ClientRect);
     LONG Height = ClientRect.bottom - ClientRect.top;
     LONG Width = ClientRect.right - ClientRect.left;
-    Win32ResizeDIBSection(Width, Height);
+    Win32ResizeDIBSection(&GlobalBackBuffer, Width, Height);
 
     break;
   }
@@ -135,7 +143,8 @@ LRESULT CALLBACK Win32MainWindowCallback(HWND Window, UINT Message,
     RECT ClientRect;
     GetClientRect(Window, &ClientRect);
 
-    Win32UpdateWindow(DeviceContext, ClientRect, X, Y, Width, Height);
+    Win32DisplayBufferInWindow(DeviceContext, ClientRect, GlobalBackBuffer, X,
+                               Y, Width, Height);
     EndPaint(Window, &Paint);
     break;
   }
@@ -202,15 +211,15 @@ void Win32MessageLoop(HWND Window) {
       DispatchMessage(&Message);
     }
 
-    RenderTestGradient(XOffset, YOffset);
+    RenderTestGradient(GlobalBackBuffer, XOffset, YOffset);
 
     HDC DeviceContext = GetDC(Window);
     RECT ClientRect;
     GetClientRect(Window, &ClientRect);
     int WindowWidth = ClientRect.right - ClientRect.left;
     int WindowHeight = ClientRect.bottom - ClientRect.top;
-    Win32UpdateWindow(DeviceContext, ClientRect, 0, 0, WindowWidth,
-                      WindowHeight);
+    Win32DisplayBufferInWindow(DeviceContext, ClientRect, GlobalBackBuffer, 0,
+                               0, WindowWidth, WindowHeight);
     ReleaseDC(Window, DeviceContext);
 
     ++XOffset;
