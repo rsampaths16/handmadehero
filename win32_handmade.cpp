@@ -107,8 +107,8 @@ internal void Win32DisplayBufferInWindow(HDC DeviceContext, int WindowWidth,
                                          int WindowHeight,
                                          win32_offscreen_buffer Buffer, int X,
                                          int Y, int Width, int Height) {
-  StretchDIBits(DeviceContext, 0, 0, Buffer.Width, Buffer.Height, 0, 0,
-                WindowWidth, WindowHeight, Buffer.Memory, &Buffer.Info,
+  StretchDIBits(DeviceContext, 0, 0, WindowWidth, WindowHeight, 0, 0,
+                Buffer.Width, Buffer.Height, Buffer.Memory, &Buffer.Info,
                 DIB_RGB_COLORS, SRCCOPY);
 }
 
