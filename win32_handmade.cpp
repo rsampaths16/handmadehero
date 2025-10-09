@@ -209,7 +209,7 @@ void Win32MessageLoop(HWND Window) {
     GetClientRect(Window, &ClientRect);
     int WindowWidth = ClientRect.right - ClientRect.left;
     int WindowHeight = ClientRect.bottom - ClientRect.top;
-    Win32UpdateWindow(DeviceContext, &ClientRect, 0, 0, WindowWidth,
+    Win32UpdateWindow(DeviceContext, ClientRect, 0, 0, WindowWidth,
                       WindowHeight);
     ReleaseDC(Window, DeviceContext);
 
