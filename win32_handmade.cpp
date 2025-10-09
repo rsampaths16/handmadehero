@@ -223,6 +223,7 @@ void Win32MessageLoop(HWND Window) {
     ReleaseDC(Window, DeviceContext);
 
     ++XOffset;
+    ++YOffset;
   }
 }
 
