@@ -176,6 +176,45 @@ internal LRESULT CALLBACK Win32MainWindowCallback(HWND Window, UINT Message,
     OutputDebugStringA("WM_ACTIVATEAPP\n");
     break;
   }
+  case WM_SYSKEYDOWN:
+  case WM_SYSKEYUP:
+  case WM_KEYDOWN:
+  case WM_KEYUP: {
+    OutputDebugStringA(
+        "WM_SYSKEYDOWN || WM_SYSKEYUP || WM_KEYDOWN || WM_KEYUP\n");
+    uint32 VKCode = WParam;
+
+    const int WasKeyDownBit = (1 << 30);
+    bool WasKeyDown = ((LParam & WasKeyDownBit) != 0);
+    const int IsKeyDownBit = (1 << 31);
+    bool IsKeyDown = ((LParam & IsKeyDownBit) == 0);
+
+    if (WasKeyDown != IsKeyDown) {
+      if (VKCode == 'W') {
+      } else if (VKCode == 'A') {
+      } else if (VKCode == 'S') {
+      } else if (VKCode == 'D') {
+      } else if (VKCode == 'Q') {
+      } else if (VKCode == 'E') {
+      } else if (VKCode == VK_UP) {
+      } else if (VKCode == VK_LEFT) {
+      } else if (VKCode == VK_DOWN) {
+      } else if (VKCode == VK_RIGHT) {
+      } else if (VKCode == VK_ESCAPE) {
+        OutputDebugStringA("ESCAPE: ");
+        if (IsKeyDown) {
+          OutputDebugStringA("IsDown ");
+        }
+        if (WasKeyDown) {
+          OutputDebugStringA("WasDown");
+        }
+        OutputDebugStringA("\n");
+      } else if (VKCode == VK_SPACE) {
+      } else if (VKCode == VK_RETURN) {
+      }
+    }
+    break;
+  }
   case WM_PAINT: {
     OutputDebugStringA("WM_PAINT\n");
     PAINTSTRUCT Paint;
