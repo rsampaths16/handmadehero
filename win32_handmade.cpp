@@ -35,7 +35,7 @@ struct win32_window_dimension {
 global_persist boolean MessageLoopRunning = true;
 global_persist win32_offscreen_buffer GlobalBackBuffer = {};
 
-win32_window_dimension Win32GetWindowDimension(HWND Window) {
+internal win32_window_dimension Win32GetWindowDimension(HWND Window) {
   win32_window_dimension Result;
 
   RECT ClientRect;
@@ -121,8 +121,9 @@ internal void Win32DisplayBufferInWindow(HDC DeviceContext, int WindowWidth,
                 DIB_RGB_COLORS, SRCCOPY);
 }
 
-LRESULT CALLBACK Win32MainWindowCallback(HWND Window, UINT Message,
-                                         WPARAM WParam, LPARAM LParam) {
+internal LRESULT CALLBACK Win32MainWindowCallback(HWND Window, UINT Message,
+                                                  WPARAM WParam,
+                                                  LPARAM LParam) {
   LRESULT Result = 0;
 
   switch (Message) {
@@ -168,7 +169,7 @@ LRESULT CALLBACK Win32MainWindowCallback(HWND Window, UINT Message,
   return Result;
 }
 
-WNDCLASSEXA Win32ConstructMainWindowClass(HINSTANCE Instance) {
+internal WNDCLASSEXA Win32ConstructMainWindowClass(HINSTANCE Instance) {
   WNDCLASSEXA WindowClass = {};
   WindowClass.cbSize = sizeof(WNDCLASSEXA);
   WindowClass.style = CS_HREDRAW | CS_VREDRAW;
@@ -182,8 +183,8 @@ WNDCLASSEXA Win32ConstructMainWindowClass(HINSTANCE Instance) {
   return WindowClass;
 }
 
-HWND Win32RegisterAndCreateWindow(HINSTANCE Instance,
-                                  PWNDCLASSEXA WindowClassPtr) {
+internal HWND Win32RegisterAndCreateWindow(HINSTANCE Instance,
+                                           PWNDCLASSEXA WindowClassPtr) {
   ATOM WindowClassAtom = RegisterClassExA(WindowClassPtr);
   if (WindowClassAtom != 0) {
     HWND Window = CreateWindowExA(0, "HandmadeHeroWindowClass", "HandemadeHero",
@@ -206,7 +207,7 @@ HWND Win32RegisterAndCreateWindow(HINSTANCE Instance,
   }
 }
 
-void Win32MessageLoop(HWND Window) {
+internal void Win32MessageLoop(HWND Window) {
   int XOffset = 0;
   int YOffset = 0;
 
