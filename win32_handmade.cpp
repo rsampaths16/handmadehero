@@ -32,9 +32,35 @@ struct win32_window_dimension {
   int Height;
 };
 
+// NOTE: Support for XInputGetState
+#define X_INPUT_GET_STATE(name)                                                \
+  DWORD WINAPI name(DWORD dwUserIndex, XINPUT_STATE *pState)
+typedef X_INPUT_GET_STATE(x_input_get_state);
+X_INPUT_GET_STATE(XInputGetStateStub) { return 0; }
+global_variable x_input_get_state *XInputGetState_ = XInputGetStateStub;
+#define XInputGetState XInputGetState_
+
+// NOTE: Support for XInputSetState
+#define X_INPUT_SET_STATE(name)                                                \
+  DWORD WINAPI name(DWORD dwUserIndex, XINPUT_VIBRATION *pVibration)
+typedef X_INPUT_SET_STATE(x_input_set_state);
+X_INPUT_SET_STATE(XInputSetStateStub) { return 0; }
+global_variable x_input_set_state *XInputSetState_ = XInputSetStateStub;
+#define XInputSetState XInputSetState_
+
 // TODO: This is global for now; Need a proper solution for this;
 global_variable boolean MessageLoopRunning = true;
 global_variable win32_offscreen_buffer GlobalBackBuffer = {};
+
+internal void Win32LoadXInput(void) {
+  HMODULE XInputLibrary = LoadLibraryA("xinput1_3.dll");
+  if (XInputLibrary != NULL) {
+    XInputGetState =
+        (x_input_get_state *)GetProcAddress(XInputLibrary, "XInputGetState");
+    XInputSetState =
+        (x_input_set_state *)GetProcAddress(XInputLibrary, "XInputSetState");
+  }
+}
 
 internal win32_window_dimension Win32GetWindowDimension(HWND Window) {
   win32_window_dimension Result;
@@ -273,6 +299,7 @@ internal void Win32MessageLoop(HWND Window) {
 
 int APIENTRY WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR Cmdline,
                      int ShowCode) {
+  Win32LoadXInput();
   Win32ResizeDIBSection(&GlobalBackBuffer, 1280, 720);
   WNDCLASSEXA WindowClass = Win32ConstructMainWindowClass(Instance);
   HWND Window = Win32RegisterAndCreateWindow(Instance, &WindowClass);
