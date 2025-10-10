@@ -154,34 +154,20 @@ internal LRESULT CALLBACK Win32MainWindowCallback(HWND Window, UINT Message,
   LRESULT Result = 0;
 
   switch (Message) {
-  case WM_SIZE: {
-    OutputDebugStringA("WM_SIZE\n");
-    break;
-  }
   case WM_DESTROY: {
-    OutputDebugStringA("WM_DESTROY\n");
-
     // TODO: Handle this as an error - recreate window?
     MessageLoopRunning = false;
     break;
   }
   case WM_CLOSE: {
-    OutputDebugStringA("WM_CLOSE\n");
-
     // TODO: Handle this with a message to the users?
     MessageLoopRunning = false;
-    break;
-  }
-  case WM_ACTIVATEAPP: {
-    OutputDebugStringA("WM_ACTIVATEAPP\n");
     break;
   }
   case WM_SYSKEYDOWN:
   case WM_SYSKEYUP:
   case WM_KEYDOWN:
   case WM_KEYUP: {
-    OutputDebugStringA(
-        "WM_SYSKEYDOWN || WM_SYSKEYUP || WM_KEYDOWN || WM_KEYUP\n");
     uint32 VKCode = WParam;
 
     const int WasKeyDownBit = (1 << 30);
@@ -216,7 +202,6 @@ internal LRESULT CALLBACK Win32MainWindowCallback(HWND Window, UINT Message,
     break;
   }
   case WM_PAINT: {
-    OutputDebugStringA("WM_PAINT\n");
     PAINTSTRUCT Paint;
     HDC DeviceContext = BeginPaint(Window, &Paint);
     win32_window_dimension Dimension = Win32GetWindowDimension(Window);
@@ -226,7 +211,6 @@ internal LRESULT CALLBACK Win32MainWindowCallback(HWND Window, UINT Message,
     break;
   }
   default: {
-    // OutputDebugStringA("default\n");
     Result = DefWindowProc(Window, Message, WParam, LParam);
     break;
   }
