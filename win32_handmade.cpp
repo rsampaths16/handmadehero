@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <windows.h>
+#include <xinput.h>
 
 #define internal static
 #define local_variable static
@@ -223,6 +224,43 @@ internal void Win32MessageLoop(HWND Window) {
       DispatchMessage(&Message);
     }
 
+    for (DWORD ControllerIndex = 0; ControllerIndex < XUSER_MAX_COUNT;
+         ControllerIndex++) {
+      XINPUT_STATE ControllerState;
+      DWORD ResponseStatus = XInputGetState(ControllerIndex, &ControllerState);
+
+      if (ResponseStatus == ERROR_SUCCESS) {
+        // NOTE: Controller is connected
+        // TODO: See if ControllerState.dwPacketNumber increments too rapidly
+        XINPUT_GAMEPAD *Pad = &ControllerState.Gamepad;
+        bool Up = (Pad->wButtons & XINPUT_GAMEPAD_DPAD_UP);
+        bool Down = (Pad->wButtons & XINPUT_GAMEPAD_DPAD_DOWN);
+        bool Left = (Pad->wButtons & XINPUT_GAMEPAD_DPAD_LEFT);
+        bool Right = (Pad->wButtons & XINPUT_GAMEPAD_DPAD_RIGHT);
+        bool Start = (Pad->wButtons & XINPUT_GAMEPAD_START);
+        bool Back = (Pad->wButtons & XINPUT_GAMEPAD_BACK);
+        bool LeftThumb = (Pad->wButtons & XINPUT_GAMEPAD_LEFT_THUMB);
+        bool RightThumb = (Pad->wButtons & XINPUT_GAMEPAD_RIGHT_THUMB);
+        bool LeftShoulder = (Pad->wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER);
+        bool RightShoulder = (Pad->wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER);
+        bool AButton = (Pad->wButtons & XINPUT_GAMEPAD_A);
+        bool BButton = (Pad->wButtons & XINPUT_GAMEPAD_B);
+        bool XButton = (Pad->wButtons & XINPUT_GAMEPAD_X);
+        bool YButton = (Pad->wButtons & XINPUT_GAMEPAD_Y);
+
+        int16 LeftStickX = Pad->sThumbLX;
+        int16 LeftStickY = Pad->sThumbLY;
+
+        int16 RightStickX = Pad->sThumbRX;
+        int16 RightStickY = Pad->sThumbRY;
+
+        XOffset -= LeftStickX >> 12;
+        YOffset += LeftStickY >> 12;
+      } else {
+        // NOTE: Controller is not connected
+      }
+    }
+
     RenderTestGradient(GlobalBackBuffer, XOffset, YOffset);
 
     HDC DeviceContext = GetDC(Window);
@@ -230,9 +268,6 @@ internal void Win32MessageLoop(HWND Window) {
     Win32DisplayBufferInWindow(DeviceContext, Dimension.Width, Dimension.Height,
                                GlobalBackBuffer);
     ReleaseDC(Window, DeviceContext);
-
-    ++XOffset;
-    ++YOffset;
   }
 }
 
