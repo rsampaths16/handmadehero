@@ -113,8 +113,7 @@ internal void Win32ResizeDIBSection(win32_offscreen_buffer *Buffer, int Width,
 
 internal void Win32DisplayBufferInWindow(HDC DeviceContext, int WindowWidth,
                                          int WindowHeight,
-                                         win32_offscreen_buffer Buffer, int X,
-                                         int Y, int Width, int Height) {
+                                         win32_offscreen_buffer Buffer) {
   // TODO: Handle aspect ratio correction
   StretchDIBits(DeviceContext, 0, 0, WindowWidth, WindowHeight, 0, 0,
                 Buffer.Width, Buffer.Height, Buffer.Memory, &Buffer.Info,
@@ -159,7 +158,7 @@ LRESULT CALLBACK Win32MainWindowCallback(HWND Window, UINT Message,
 
     win32_window_dimension Dimension = Win32GetWindowDimension(Window);
     Win32DisplayBufferInWindow(DeviceContext, Dimension.Width, Dimension.Height,
-                               GlobalBackBuffer, X, Y, Width, Height);
+                               GlobalBackBuffer);
     EndPaint(Window, &Paint);
     break;
   }
@@ -231,8 +230,7 @@ void Win32MessageLoop(HWND Window) {
     HDC DeviceContext = GetDC(Window);
     win32_window_dimension Dimension = Win32GetWindowDimension(Window);
     Win32DisplayBufferInWindow(DeviceContext, Dimension.Width, Dimension.Height,
-                               GlobalBackBuffer, 0, 0, Dimension.Width,
-                               Dimension.Height);
+                               GlobalBackBuffer);
     ReleaseDC(Window, DeviceContext);
 
     ++XOffset;
