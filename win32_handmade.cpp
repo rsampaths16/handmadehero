@@ -151,11 +151,6 @@ LRESULT CALLBACK Win32MainWindowCallback(HWND Window, UINT Message,
     OutputDebugStringA("WM_PAINT\n");
     PAINTSTRUCT Paint;
     HDC DeviceContext = BeginPaint(Window, &Paint);
-    LONG Height = Paint.rcPaint.bottom - Paint.rcPaint.top;
-    LONG Width = Paint.rcPaint.right - Paint.rcPaint.left;
-    LONG X = Paint.rcPaint.left;
-    LONG Y = Paint.rcPaint.top;
-
     win32_window_dimension Dimension = Win32GetWindowDimension(Window);
     Win32DisplayBufferInWindow(DeviceContext, Dimension.Width, Dimension.Height,
                                GlobalBackBuffer);
