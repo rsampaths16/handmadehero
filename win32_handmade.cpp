@@ -16,12 +16,14 @@ typedef uint32_t uint32;
 typedef uint64_t uint64;
 
 struct win32_offscreen_buffer {
+  /*
+   * NOTE: Each Pixel is 32-bits wide. Memory Order is BB GG RR XX.
+   */
   BITMAPINFO Info;
   void *Memory;
   int Width;
   int Height;
   int Pitch;
-  int BytesPerPixel;
 };
 
 struct win32_window_dimension {
@@ -81,7 +83,6 @@ internal void Win32ResizeDIBSection(win32_offscreen_buffer *Buffer, int Width,
 
   Buffer->Width = Width;
   Buffer->Height = Height;
-  Buffer->BytesPerPixel = 4;
 
   /*
    * NOTE: Negative Height is hint to windows on the orientation of the buffer.
@@ -102,11 +103,11 @@ internal void Win32ResizeDIBSection(win32_offscreen_buffer *Buffer, int Width,
   Buffer->Info.bmiHeader.biBitCount = 32;
   Buffer->Info.bmiHeader.biCompression = BI_RGB;
 
-  int BitmapMemorySize =
-      (Buffer->Width * Buffer->Height) * Buffer->BytesPerPixel;
+  int BytesPerPixel = 4;
+  int BitmapMemorySize = (Buffer->Width * Buffer->Height) * BytesPerPixel;
   Buffer->Memory =
       VirtualAlloc(0, BitmapMemorySize, MEM_COMMIT, PAGE_READWRITE);
-  Buffer->Pitch = Buffer->Width * Buffer->BytesPerPixel;
+  Buffer->Pitch = Buffer->Width * BytesPerPixel;
 
   // TODO: Might want to clear screen to black
 }
