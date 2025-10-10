@@ -83,6 +83,14 @@ internal void Win32ResizeDIBSection(win32_offscreen_buffer *Buffer, int Width,
   Buffer->Height = Height;
   Buffer->BytesPerPixel = 4;
 
+  /*
+   * NOTE: Negative Height is hint to windows on the orientation of the buffer.
+   * A negative height means the buffer renders the screen from the top left
+   * i.e., the first 4 bytes represent the top left pixel, and so on row by row.
+   *
+   * REFERENCE:
+   * https://learn.microsoft.com/en-us/windows/win32/api/wingdi/ns-wingdi-bitmapinfoheader
+   */
   Buffer->Info.bmiHeader.biSize = sizeof(Buffer->Info.bmiHeader);
   Buffer->Info.bmiHeader.biWidth = Buffer->Width;
   Buffer->Info.bmiHeader.biHeight = -Buffer->Height;
