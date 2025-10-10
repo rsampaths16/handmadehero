@@ -207,11 +207,12 @@ HWND Win32RegisterAndCreateWindow(HINSTANCE Instance,
 }
 
 void Win32MessageLoop(HWND Window) {
-  MSG Message;
   int XOffset = 0;
   int YOffset = 0;
 
   while (MessageLoopRunning) {
+    MSG Message;
+
     while (PeekMessage(&Message, 0, 0, 0, PM_REMOVE)) {
       if (Message.message == WM_QUIT) {
         MessageLoopRunning = false;
