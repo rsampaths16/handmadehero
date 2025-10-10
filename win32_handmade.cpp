@@ -2,8 +2,8 @@
 #include <windows.h>
 
 #define internal static
-#define local_persist static
-#define global_persist static
+#define local_variable static
+#define global_variable static
 
 typedef int8_t int8;
 typedef int16_t int16;
@@ -32,8 +32,8 @@ struct win32_window_dimension {
 };
 
 // TODO: This is global for now; Need a proper solution for this;
-global_persist boolean MessageLoopRunning = true;
-global_persist win32_offscreen_buffer GlobalBackBuffer = {};
+global_variable boolean MessageLoopRunning = true;
+global_variable win32_offscreen_buffer GlobalBackBuffer = {};
 
 internal win32_window_dimension Win32GetWindowDimension(HWND Window) {
   win32_window_dimension Result;
