@@ -182,6 +182,9 @@ internal LRESULT CALLBACK Win32MainWindowCallback(HWND Window, UINT Message,
     const int IsKeyDownBit = (1 << 31);
     bool IsKeyDown = ((LParam & IsKeyDownBit) == 0);
 
+    const int AltKeyWasDownBit = (1 << 29);
+    bool AltKeyWasDown = ((LParam & AltKeyWasDownBit) != 0);
+
     if (WasKeyDown != IsKeyDown) {
       if (VKCode == 'W') {
       } else if (VKCode == 'A') {
@@ -204,6 +207,8 @@ internal LRESULT CALLBACK Win32MainWindowCallback(HWND Window, UINT Message,
         OutputDebugStringA("\n");
       } else if (VKCode == VK_SPACE) {
       } else if (VKCode == VK_RETURN) {
+      } else if ((VKCode == VK_F4) && AltKeyWasDown) {
+        MessageLoopRunning = false;
       }
     }
     break;
