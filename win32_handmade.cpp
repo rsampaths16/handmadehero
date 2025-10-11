@@ -139,8 +139,8 @@ internal void Win32ResizeDIBSection(win32_offscreen_buffer *Buffer, int Width,
 
   int BytesPerPixel = 4;
   int BitmapMemorySize = (Buffer->Width * Buffer->Height) * BytesPerPixel;
-  Buffer->Memory =
-      VirtualAlloc(0, BitmapMemorySize, MEM_COMMIT, PAGE_READWRITE);
+  Buffer->Memory = VirtualAlloc(0, BitmapMemorySize, MEM_RESERVE | MEM_COMMIT,
+                                PAGE_READWRITE);
   Buffer->Pitch = Buffer->Width * BytesPerPixel;
 
   // TODO: Might want to clear screen to black
