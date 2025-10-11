@@ -53,7 +53,14 @@ global_variable boolean MessageLoopRunning = true;
 global_variable win32_offscreen_buffer GlobalBackBuffer = {};
 
 internal void Win32LoadXInput(void) {
-  HMODULE XInputLibrary = LoadLibraryA("xinput1_3.dll");
+  HMODULE XInputLibrary = LoadLibraryA("xinput9_1_0.dll");
+  if (XInputLibrary == NULL) {
+    XInputLibrary = LoadLibraryA("xinput1_4.dll");
+  }
+  if (XInputLibrary == NULL) {
+    XInputLibrary = LoadLibraryA("xinput1_3.dll");
+  }
+
   if (XInputLibrary != NULL) {
     XInputGetState =
         (x_input_get_state *)GetProcAddress(XInputLibrary, "XInputGetState");
