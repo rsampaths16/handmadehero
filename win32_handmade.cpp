@@ -357,7 +357,7 @@ internal void Win32MessageLoop(HWND Window) {
   int SecondaryBufferSize = SamplesPerSecond * BytesPerSample;
 
   Win32InitDSound(Window, SamplesPerSecond, SecondaryBufferSize);
-  GlobalSecondaryAudioBuffer->Play(0, 0, DSBPLAY_LOOPING);
+  bool SoundIsPlaying = false;
 
   while (MessageLoopRunning) {
     MSG Message;
@@ -424,7 +424,9 @@ internal void Win32MessageLoop(HWND Window) {
       DWORD ByteToLock =
           (RunningSampleIndex * BytesPerSample) % SecondaryBufferSize;
       DWORD BytesToWrite;
-      if (ByteToLock > PlayCursor) {
+      if (ByteToLock == PlayCursor) {
+        BytesToWrite = SecondaryBufferSize;
+      } else if (ByteToLock > PlayCursor) {
         BytesToWrite = (SecondaryBufferSize - ByteToLock);
         BytesToWrite += PlayCursor;
       } else {
@@ -437,6 +439,7 @@ internal void Win32MessageLoop(HWND Window) {
       DWORD Region2Size;
 
       // TODO: More testing needed to make sure this is working
+      // TODO: Switch to a sine wave
       if (SUCCEEDED(GlobalSecondaryAudioBuffer->Lock(
               ByteToLock, BytesToWrite, &Region1, &Region1Size, &Region2,
               &Region2Size, 0))) {
@@ -466,6 +469,10 @@ internal void Win32MessageLoop(HWND Window) {
 
         GlobalSecondaryAudioBuffer->Unlock(Region1, Region1Size, Region2,
                                            Region2Size);
+        if (!SoundIsPlaying) {
+          GlobalSecondaryAudioBuffer->Play(0, 0, DSBPLAY_LOOPING);
+          SoundIsPlaying = true;
+        }
       }
     }
   }
