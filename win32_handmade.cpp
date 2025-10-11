@@ -52,6 +52,7 @@ global_variable x_input_set_state *XInputSetState_ = XInputSetStateStub;
 // TODO: This is global for now; Need a proper solution for this;
 global_variable boolean MessageLoopRunning = true;
 global_variable win32_offscreen_buffer GlobalBackBuffer = {};
+global_variable LPDIRECTSOUNDBUFFER GlobalSecondaryAudioBuffer = {};
 
 internal void Win32LoadXInput(void) {
   // TODO: diagnostic log - which version was used
@@ -125,9 +126,8 @@ internal void Win32InitDSound(HWND Window, int32 SamplesPerSecond,
       BufferDescription.dwFlags = 0;
       BufferDescription.dwBufferBytes = BufferSize;
       BufferDescription.lpwfxFormat = &WaveFormat;
-      LPDIRECTSOUNDBUFFER SecondaryBuffer;
-      if (SUCCEEDED(DirectSound->CreateSoundBuffer(&BufferDescription,
-                                                   &SecondaryBuffer, NULL))) {
+      if (SUCCEEDED(DirectSound->CreateSoundBuffer(
+              &BufferDescription, &GlobalSecondaryAudioBuffer, NULL))) {
         OutputDebugStringA("Secondary buffer format was created & set\n");
       } else {
         // TODO: log diagnostic
