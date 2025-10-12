@@ -476,8 +476,9 @@ internal void Win32MessageLoop(HWND Window) {
         int16 RightStickX = Pad->sThumbRX;
         int16 RightStickY = Pad->sThumbRY;
 
-        XOffset -= LeftStickX >> 12;
-        YOffset += LeftStickY >> 12;
+        // TODO: Implment proper deadzone handling
+        XOffset -= LeftStickX / 4096;
+        YOffset += LeftStickY / 4096;
 
         if (Down) {
           SoundOutput.ToneHz =
