@@ -434,6 +434,13 @@ internal void Win32MessageLoop(HWND Window) {
   Win32FillSoundBuffer(&SoundOutput, 0, SoundOutput.WriteAheadSamples);
   GlobalSecondaryAudioBuffer->Play(0, 0, DSBPLAY_LOOPING);
 
+  LARGE_INTEGER QueryPerformanceFrequencyResult;
+  QueryPerformanceFrequency(&QueryPerformanceFrequencyResult);
+  int64 PerfCountFrequency = QueryPerformanceFrequencyResult.QuadPart;
+
+  LARGE_INTEGER LastCounter;
+  QueryPerformanceCounter(&LastCounter);
+
   while (MessageLoopRunning) {
     MSG Message;
 
@@ -530,6 +537,18 @@ internal void Win32MessageLoop(HWND Window) {
       }
 
       Win32FillSoundBuffer(&SoundOutput, ByteToLock, BytesToWrite);
+
+      LARGE_INTEGER EndCounter;
+      QueryPerformanceCounter(&EndCounter);
+      int64 CounterElapsed = EndCounter.QuadPart - LastCounter.QuadPart;
+      int32 MSPerFrame = (int32)((1000 * CounterElapsed) / PerfCountFrequency);
+      int32 FPS = (PerfCountFrequency / CounterElapsed);
+
+      char Buffer[256];
+      wsprintf(Buffer, "%dms/f,  %df/s\n", MSPerFrame, FPS);
+      OutputDebugStringA(Buffer);
+
+      LastCounter = EndCounter;
     }
   }
 }
