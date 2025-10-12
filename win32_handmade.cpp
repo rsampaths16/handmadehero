@@ -1,4 +1,5 @@
 #include <dsound.h>
+#include <stdio.h>
 
 // TODO: Implement sine ourselves
 #include <math.h>
@@ -546,12 +547,14 @@ internal void Win32MessageLoop(HWND Window) {
       LARGE_INTEGER EndCounter;
       QueryPerformanceCounter(&EndCounter);
       int64 CounterElapsed = EndCounter.QuadPart - LastCounter.QuadPart;
-      int32 MSPerFrame = (int32)((1000 * CounterElapsed) / PerfCountFrequency);
-      int32 FPS = (PerfCountFrequency / CounterElapsed);
-      int32 MCPF = (int32)(CyclesElapsed / (1000l * 1000l));
+      real32 MSPerFrame = (real32)(((real32)(1000 * CounterElapsed)) /
+                                   ((real32)PerfCountFrequency));
+      real32 FPS = (((real32)PerfCountFrequency) / ((real32)CounterElapsed));
+      real32 MCPF = (real32)(((real32)CyclesElapsed) / (1000.0f * 1000.0f));
 
       char Buffer[256];
-      wsprintf(Buffer, "%dms/f,  %df/s, %dmc/f\n", MSPerFrame, FPS, MCPF);
+      sprintf(Buffer, "%0.2fms/f,  %0.2ff/s, %0.2fmc/f\n", MSPerFrame, FPS,
+              MCPF);
       OutputDebugStringA(Buffer);
 
       LastCycleCount = EndCycleCount;
