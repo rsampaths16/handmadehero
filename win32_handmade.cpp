@@ -8,6 +8,7 @@
 #include <xinput.h>
 
 #include "common_used_defs.h"
+#include "handmade.cpp"
 
 struct win32_offscreen_buffer {
   /*
@@ -205,22 +206,6 @@ internal win32_window_dimension Win32GetWindowDimension(HWND Window) {
   Result.Width = ClientRect.right - ClientRect.left;
 
   return Result;
-}
-
-internal void RenderTestGradient(win32_offscreen_buffer *Buffer, int BlueOffset,
-                                 int GreenOffset) {
-  uint8 *Row = (uint8 *)Buffer->Memory;
-  for (int Y = 0; Y < Buffer->Height; Y++) {
-
-    uint32 *Pixel = (uint32 *)Row;
-    for (int X = 0; X < Buffer->Width; X++) {
-      uint8 Blue = (X + BlueOffset);
-      uint8 Green = (Y + GreenOffset);
-
-      *Pixel++ = ((Green << 8) | Blue);
-    }
-    Row += Buffer->Pitch;
-  }
 }
 
 internal void Win32ResizeDIBSection(win32_offscreen_buffer *Buffer, int Width,
@@ -491,7 +476,12 @@ internal void Win32MessageLoop(HWND Window) {
       }
     }
 
-    RenderTestGradient(&GlobalBackBuffer, XOffset, YOffset);
+    game_offscreen_buffer Buffer = {};
+    Buffer.Memory = GlobalBackBuffer.Memory;
+    Buffer.Width = GlobalBackBuffer.Width;
+    Buffer.Height = GlobalBackBuffer.Height;
+    Buffer.Pitch = GlobalBackBuffer.Pitch;
+    GameUpdateAndRender(&Buffer, XOffset, YOffset);
 
     HDC DeviceContext = GetDC(Window);
     win32_window_dimension Dimension = Win32GetWindowDimension(Window);
