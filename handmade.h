@@ -4,6 +4,25 @@
 #include "common_used_defs.h"
 
 // TODO: Services that the platform layer provides to the game
+#if HANDMADE_INTERNAL
+/*
+ * CAUTION: The below File I/O is only mean to be used to unblock development
+ *   and during development/debugging. This is blocking and should be replaced
+ *   with a async non-blocking I/O for production use. The current
+ *   implementation doesn't also handle corrupt writes, missing directory ...
+ *   etc
+ */
+struct debug_read_file_result {
+  uint32 ContentSize;
+  void *Contents;
+};
+
+debug_read_file_result DEBUGPlatformReadEntireFile(char *Filename);
+void DEBUGPlatformFreeFileMemory(void *Memory);
+
+bool DEBUGPlatformWriteEntireFile(char *Filename, uint32 MemorySize,
+                                  void *Memory);
+#endif
 
 // TODO: In the future, rendering specifically will become a three-tiered
 // abstraction!!

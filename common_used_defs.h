@@ -37,4 +37,11 @@ typedef double real64;
 #define Assert(Expression)
 #endif
 
+inline uint32 SafeTruncateUInt64(uint64 Value) {
+  Assert(Value <= 0xFFFFFFFF);
+  uint32 Result = (uint32)Value;
+
+  return Result;
+}
+
 #endif

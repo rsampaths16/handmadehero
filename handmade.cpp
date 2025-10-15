@@ -41,6 +41,13 @@ internal void GameUpdateAndRender(game_memory *Memory, game_input *Input,
   Assert(sizeof(game_state) <= Memory->PermanentStorageSize);
   game_state *GameState = (game_state *)Memory->PermanentStorage;
   if (!Memory->IsInitialized) {
+    char *Filename = __FILE__;
+    debug_read_file_result File = DEBUGPlatformReadEntireFile(Filename);
+    if (File.Contents) {
+      DEBUGPlatformWriteEntireFile("test.out", File.ContentSize, File.Contents);
+      DEBUGPlatformFreeFileMemory(File.Contents);
+    }
+
     GameState->BlueOffset = 0;
     GameState->GreenOffset = 0;
     GameState->ToneHz = 262;
