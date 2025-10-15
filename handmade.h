@@ -69,6 +69,7 @@ struct game_state {
 };
 
 struct game_input {
+  // TODO: Insert clock values here
   game_controller_input Controllers[4];
 };
 
