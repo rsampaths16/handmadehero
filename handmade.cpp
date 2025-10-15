@@ -38,6 +38,7 @@ internal void RenderTestGradient(game_offscreen_buffer *Buffer, int BlueOffset,
 internal void GameUpdateAndRender(game_memory *Memory, game_input *Input,
                                   game_offscreen_buffer *Buffer,
                                   game_sound_output_buffer *SoundBuffer) {
+  Assert(sizeof(game_state) <= Memory->PermanentStorageSize);
   game_state *GameState = (game_state *)Memory->PermanentStorage;
   if (!Memory->IsInitialized) {
     GameState->BlueOffset = 0;

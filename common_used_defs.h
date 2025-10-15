@@ -28,4 +28,13 @@ typedef double real64;
 #define Gigabytes(Value) ((uint64)(Megabytes(Value) * 1024l))
 #define Terabytes(Value) ((uint64)(Gigabytes(Value) * 1024l))
 
+#if HANDMADE_SLOW
+#define Assert(Expression)                                                     \
+  if (!(Expression)) {                                                         \
+    *(int *)0 = 0;                                                             \
+  }
+#else
+#define Assert(Expression)
+#endif
+
 #endif

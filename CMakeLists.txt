@@ -11,6 +11,9 @@ project(
 
 set(CMAKE_BUILD_TYPE RelWithDebInfo)
 
+add_compile_definitions(HANDMADE_SLOW=1)
+add_compile_definitions(HANDMADE_INTERNAL=1)
+
 add_executable(HandmadeHero win32_handmade.cpp)
 set_target_properties(HandmadeHero PROPERTIES WIN32_EXECUTABLE TRUE)
 target_link_libraries(HandmadeHero user32)

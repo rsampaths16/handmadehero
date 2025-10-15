@@ -398,18 +398,24 @@ internal void Win32MessageLoop(HWND Window) {
   int16 *Samples =
       (int16 *)VirtualAlloc(0, SoundOutput.SecondaryBufferSize,
                             MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+#if HANDMADE_INTERNAL
+  LPVOID BaseAddress = (void *)Terabytes(2);
+#else
+  LPVOID BaseAddress = 0;
+#endif
 
   game_memory GameMemory = {};
   GameMemory.IsInitialized = false;
   GameMemory.PermanentStorageSize = Megabytes(64);
-  GameMemory.PermanentStorage =
-      (void *)VirtualAlloc(0, GameMemory.PermanentStorageSize,
-                           MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-
   GameMemory.TransientStorageSize = Gigabytes(4);
+
+  uint64 TotalSize =
+      GameMemory.PermanentStorageSize + GameMemory.TransientStorageSize;
+
+  GameMemory.PermanentStorage = (void *)VirtualAlloc(
+      BaseAddress, TotalSize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
   GameMemory.TransientStorage =
-      (void *)VirtualAlloc(0, GameMemory.TransientStorageSize,
-                           MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+      ((uint8 *)GameMemory.PermanentStorage + GameMemory.PermanentStorageSize);
 
   if (Samples && GameMemory.PermanentStorage && GameMemory.TransientStorage) {
 
