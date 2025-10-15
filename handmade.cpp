@@ -35,26 +35,32 @@ internal void RenderTestGradient(game_offscreen_buffer *Buffer, int BlueOffset,
   }
 }
 
-internal void GameUpdateAndRender(game_input *Input,
+internal void GameUpdateAndRender(game_memory *Memory, game_input *Input,
                                   game_offscreen_buffer *Buffer,
                                   game_sound_output_buffer *SoundBuffer) {
-  local_variable int BlueOffset = 0;
-  local_variable int GreenOffset = 0;
-  local_variable int ToneHz = 262;
+  game_state *GameState = (game_state *)Memory->PermanentStorage;
+  if (!Memory->IsInitialized) {
+    GameState->BlueOffset = 0;
+    GameState->GreenOffset = 0;
+    GameState->ToneHz = 262;
+
+    // TODO: Should this be done in the platform layer instead?
+    Memory->IsInitialized = true;
+  }
 
   game_controller_input *Input0 = &Input->Controllers[0];
   if (Input0->IsAnalog) {
     // TODO: Use analog movement tuning
-    BlueOffset -= (int)(4.0f * (Input0->EndX));
-    ToneHz = 262 + (int)(128.0f * (Input0->EndY));
+    GameState->BlueOffset -= (int)(4.0f * (Input0->EndX));
+    GameState->ToneHz = 262 + (int)(128.0f * (Input0->EndY));
   } else {
     // TODO: Use digital movement tuning
   }
 
   if (Input0->Down.EndedDown) {
-    GreenOffset += 1;
+    GameState->GreenOffset += 1;
   }
 
-  GameSoundOutput(SoundBuffer, ToneHz);
-  RenderTestGradient(Buffer, BlueOffset, GreenOffset);
+  GameSoundOutput(SoundBuffer, GameState->ToneHz);
+  RenderTestGradient(Buffer, GameState->BlueOffset, GameState->GreenOffset);
 }

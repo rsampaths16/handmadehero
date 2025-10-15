@@ -23,4 +23,9 @@ typedef double real64;
 
 #define ArrayCount(Array) (sizeof(Array) / sizeof((Array)[0]))
 
+#define Kilobytes(Value) ((uint64)((Value) * 1024l))
+#define Megabytes(Value) ((uint64)(Kilobytes(Value) * 1024l))
+#define Gigabytes(Value) ((uint64)(Megabytes(Value) * 1024l))
+#define Terabytes(Value) ((uint64)(Gigabytes(Value) * 1024l))
+
 #endif
