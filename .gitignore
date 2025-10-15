@@ -1,5 +1,6 @@
 # Custom
 build/*
+.clangd
 
 # REFERENCE: https://github.com/github/gitignore/blob/main/Global/Windows.gitignore
 # Windows thumbnail cache files
