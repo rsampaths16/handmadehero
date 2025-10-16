@@ -408,7 +408,7 @@ internal HWND Win32RegisterAndCreateWindow(HINSTANCE Instance,
   }
 }
 
-internal void Win32MessageLoop(HWND Window) {
+internal void Win32ProcessLoop(HWND Window) {
   // NOTE: Graphics Test
   int XOffset = 0;
   int YOffset = 0;
@@ -707,7 +707,7 @@ int APIENTRY WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR Cmdline,
   HWND Window = Win32RegisterAndCreateWindow(Instance, &WindowClass);
 
   if (Window != NULL) {
-    Win32MessageLoop(Window);
+    Win32ProcessLoop(Window);
   }
 
   return 0;
