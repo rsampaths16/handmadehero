@@ -9,6 +9,8 @@ project(
   CXX
 )
 
+option(ARCH_32BIT "Build for 32bit platform" OFF)
+
 set(CMAKE_BUILD_TYPE RelWithDebInfo)
 add_executable(HandmadeHero win32_handmade.cpp)
 set_target_properties(HandmadeHero PROPERTIES WIN32_EXECUTABLE TRUE)
@@ -35,5 +37,7 @@ target_compile_options(
   -wd4100
   -wd4189
 )
-target_link_options(HandmadeHero PRIVATE -subsystem:windows -version:5.1)
+if(ARCH_32BIT)
+  target_link_options(HandmadeHero PRIVATE -subsystem:windows -version:5.1)
+endif()
 target_link_libraries(HandmadeHero user32)
