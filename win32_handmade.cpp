@@ -29,7 +29,7 @@ global_variable x_input_set_state *XInputSetState_ = XInputSetStateStub;
 #define XInputSetState XInputSetState_
 
 // TODO: This is global for now; Need a proper solution for this;
-global_variable boolean MessageLoopRunning = true;
+global_variable boolean GlobalRunning = true;
 global_variable win32_offscreen_buffer GlobalBackBuffer = {};
 global_variable LPDIRECTSOUNDBUFFER GlobalSecondaryAudioBuffer = {};
 
@@ -337,12 +337,12 @@ internal LRESULT CALLBACK Win32MainWindowCallback(HWND Window, UINT Message,
   switch (Message) {
   case WM_DESTROY: {
     // TODO: Handle this as an error - recreate window?
-    MessageLoopRunning = false;
+    GlobalRunning = false;
     break;
   }
   case WM_CLOSE: {
     // TODO: Handle this with a message to the users?
-    MessageLoopRunning = false;
+    GlobalRunning = false;
     break;
   }
   case WM_SYSKEYDOWN:
@@ -464,7 +464,7 @@ internal void Win32MessageLoop(HWND Window) {
     LARGE_INTEGER LastCounter;
     QueryPerformanceCounter(&LastCounter);
 
-    while (MessageLoopRunning) {
+    while (GlobalRunning) {
       MSG Message;
 
       game_controller_input *KeyboardController = &NewInput->Controllers[0];
@@ -475,7 +475,7 @@ internal void Win32MessageLoop(HWND Window) {
 
       while (PeekMessage(&Message, 0, 0, 0, PM_REMOVE)) {
         if (Message.message == WM_QUIT) {
-          MessageLoopRunning = false;
+          GlobalRunning = false;
         }
 
         switch (Message.message) {
@@ -525,7 +525,7 @@ internal void Win32MessageLoop(HWND Window) {
             } else if (VKCode == VK_SPACE) {
             } else if (VKCode == VK_RETURN) {
             } else if ((VKCode == VK_F4) && AltKeyWasDown) {
-              MessageLoopRunning = false;
+              GlobalRunning = false;
             }
           }
           break;
