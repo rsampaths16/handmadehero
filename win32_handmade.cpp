@@ -409,6 +409,19 @@ internal HWND Win32RegisterAndCreateWindow(HINSTANCE Instance,
   }
 }
 
+internal real32 Win32ProcessXInputStickValue(SHORT Value,
+                                             SHORT DeadZoneThreshold) {
+  real32 Result = 0;
+
+  if (Value < -DeadZoneThreshold) {
+    Result = (real32)Value / 32768.0f;
+  } else if (Value > DeadZoneThreshold) {
+    Result = (real32)Value / 32767.0f;
+  }
+
+  return Result;
+}
+
 internal void
 Win32ProcessPendingMessages(game_controller_input *KeyboardController) {
   MSG Message;
@@ -583,21 +596,13 @@ internal void Win32ProcessLoop(HWND Window) {
 
           NewController->IsAnalog = true;
 
-          real32 X;
-          if (Pad->sThumbLX < 0) {
-            X = (real32)Pad->sThumbLX / 32768.0f;
-          } else {
-            X = (real32)Pad->sThumbLX / 32767.0f;
-          }
+          real32 X = Win32ProcessXInputStickValue(
+              Pad->sThumbLX, XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
           NewController->StartX = OldController->EndX;
           NewController->MinX = NewController->MaxX = NewController->EndX = X;
 
-          real32 Y;
-          if (Pad->sThumbLY < 0) {
-            Y = (real32)Pad->sThumbLY / 32768.0f;
-          } else {
-            Y = (real32)Pad->sThumbLY / 32767.0f;
-          }
+          real32 Y = Win32ProcessXInputStickValue(
+              Pad->sThumbLY, XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
           NewController->StartY = OldController->EndY;
           NewController->MinY = NewController->MaxY = NewController->EndY = Y;
 
@@ -610,10 +615,6 @@ internal void Win32ProcessLoop(HWND Window) {
           int16 RightStickX = Pad->sThumbRX;
           int16 RightStickY = Pad->sThumbRY;
           */
-
-          // TODO: Implment proper deadzone handling
-          // XOffset -= LeftStickX / 4096;
-          // YOffset += LeftStickY / 4096;
 
           Win32ProcessXInputDigitalButton(Pad->wButtons, &OldController->Down,
                                           XINPUT_GAMEPAD_A,
