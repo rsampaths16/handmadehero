@@ -316,6 +316,7 @@ internal void Win32DisplayBufferInWindow(win32_offscreen_buffer *Buffer,
 
 internal void Win32ProcessKeyboardMessage(game_button_state *NewState,
                                           bool IsDown) {
+  Assert(NewState->EndedDown != IsDown);
   NewState->EndedDown = IsDown;
   NewState->HalfTransitionCount++;
 }
@@ -536,13 +537,20 @@ internal void Win32ProcessLoop(HWND Window) {
 
     while (GlobalRunning) {
 
-      game_controller_input *KeyboardController = &NewInput->Controllers[0];
+      game_controller_input *OldKeyboardController = &OldInput->Controllers[0];
+      game_controller_input *NewKeyboardController = &NewInput->Controllers[0];
       // TODO: Add a Zeroing macro
       // TODO: We can't zero everything because the up/down state will be wrong
       game_controller_input ZeroController = {};
-      *KeyboardController = ZeroController;
+      *NewKeyboardController = ZeroController;
+      for (int ButtonIndex = 0;
+           ButtonIndex < ArrayCount(NewKeyboardController->Buttons);
+           ButtonIndex++) {
+        NewKeyboardController->Buttons[ButtonIndex].EndedDown =
+            OldKeyboardController->Buttons[ButtonIndex].EndedDown;
+      }
 
-      Win32ProcessPendingMessages(KeyboardController);
+      Win32ProcessPendingMessages(NewKeyboardController);
 
       DWORD MaxControllerCount = 1 + XUSER_MAX_COUNT;
       if (MaxControllerCount > ArrayCount(NewInput->Controllers)) {
