@@ -412,11 +412,12 @@ internal void
 Win32ProcessPendingMessages(game_controller_input *KeyboardController) {
   MSG Message;
   while (PeekMessage(&Message, 0, 0, 0, PM_REMOVE)) {
-    if (Message.message == WM_QUIT) {
+    switch (Message.message) {
+    case WM_QUIT: {
       GlobalRunning = false;
+      break;
     }
 
-    switch (Message.message) {
     case WM_SYSKEYDOWN:
     case WM_SYSKEYUP:
     case WM_KEYDOWN:
@@ -467,6 +468,7 @@ Win32ProcessPendingMessages(game_controller_input *KeyboardController) {
       }
       break;
     }
+
     default: {
       TranslateMessage(&Message);
       DispatchMessage(&Message);
