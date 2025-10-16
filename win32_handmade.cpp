@@ -343,7 +343,7 @@ internal LRESULT CALLBACK Win32MainWindowCallback(HWND Window, UINT Message,
   case WM_SYSKEYUP:
   case WM_KEYDOWN:
   case WM_KEYUP: {
-    uint32 VKCode = WParam;
+    uint32 VKCode = (uint32)WParam;
 
     const int WasKeyDownBit = (1 << 30);
     bool WasKeyDown = ((LParam & WasKeyDownBit) != 0);
@@ -505,7 +505,7 @@ internal void Win32MessageLoop(HWND Window) {
         DispatchMessage(&Message);
       }
 
-      int MaxControllerCount = XUSER_MAX_COUNT;
+      DWORD MaxControllerCount = XUSER_MAX_COUNT;
       if (MaxControllerCount > ArrayCount(NewInput->Controllers)) {
         MaxControllerCount = ArrayCount(NewInput->Controllers);
       }
@@ -651,8 +651,8 @@ internal void Win32MessageLoop(HWND Window) {
       real32 MCPF = (real32)(((real32)CyclesElapsed) / (1000.0f * 1000.0f));
 
       char StringBuffer[256];
-      sprintf(StringBuffer, "%0.2fms/f,  %0.2ff/s, %0.2fmc/f\n", MSPerFrame,
-              FPS, MCPF);
+      sprintf_s(StringBuffer, "%0.2fms/f,  %0.2ff/s, %0.2fmc/f\n", MSPerFrame,
+                FPS, MCPF);
       OutputDebugStringA(StringBuffer);
 
       LastCycleCount = EndCycleCount;

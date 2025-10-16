@@ -17,11 +17,11 @@ struct debug_read_file_result {
   void *Contents;
 };
 
-debug_read_file_result DEBUGPlatformReadEntireFile(char *Filename);
-void DEBUGPlatformFreeFileMemory(void *Memory);
+internal debug_read_file_result DEBUGPlatformReadEntireFile(char *Filename);
+internal void DEBUGPlatformFreeFileMemory(void *Memory);
 
-bool DEBUGPlatformWriteEntireFile(char *Filename, uint32 MemorySize,
-                                  void *Memory);
+internal bool DEBUGPlatformWriteEntireFile(char *Filename, uint32 MemorySize,
+                                           void *Memory);
 #endif
 
 // TODO: In the future, rendering specifically will become a three-tiered
