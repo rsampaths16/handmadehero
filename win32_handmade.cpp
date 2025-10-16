@@ -544,17 +544,19 @@ internal void Win32ProcessLoop(HWND Window) {
 
       Win32ProcessPendingMessages(KeyboardController);
 
-      DWORD MaxControllerCount = XUSER_MAX_COUNT;
+      DWORD MaxControllerCount = 1 + XUSER_MAX_COUNT;
       if (MaxControllerCount > ArrayCount(NewInput->Controllers)) {
         MaxControllerCount = ArrayCount(NewInput->Controllers);
       }
+      MaxControllerCount -= 1;
 
       for (DWORD ControllerIndex = 0; ControllerIndex < MaxControllerCount;
            ControllerIndex++) {
+        DWORD OurControllerIndex = ControllerIndex + 1;
         game_controller_input *OldController =
-            &OldInput->Controllers[ControllerIndex];
+            &OldInput->Controllers[OurControllerIndex];
         game_controller_input *NewController =
-            &NewInput->Controllers[ControllerIndex];
+            &NewInput->Controllers[OurControllerIndex];
 
         XINPUT_STATE ControllerState;
         DWORD ResponseStatus =

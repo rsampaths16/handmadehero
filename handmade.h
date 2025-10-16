@@ -89,7 +89,7 @@ struct game_state {
 
 struct game_input {
   // TODO: Insert clock values here
-  game_controller_input Controllers[4];
+  game_controller_input Controllers[5];
 };
 
 internal void GameUpdateAndRender(game_memory *Memory, game_input *Input,
