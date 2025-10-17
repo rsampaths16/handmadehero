@@ -558,8 +558,7 @@ internal void Win32ProcessLoop(HWND Window) {
       game_controller_input *NewKeyboardController = GetController(NewInput, 0);
       // TODO: Add a Zeroing macro
       // TODO: We can't zero everything because the up/down state will be wrong
-      game_controller_input ZeroController = {};
-      *NewKeyboardController = ZeroController;
+      *NewKeyboardController = {};
       NewKeyboardController->IsConnected = true;
 
       for (int ButtonIndex = 0;
