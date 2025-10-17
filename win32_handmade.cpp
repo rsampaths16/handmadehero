@@ -32,6 +32,7 @@ global_variable x_input_set_state *XInputSetState_ = XInputSetStateStub;
 global_variable boolean GlobalRunning = true;
 global_variable win32_offscreen_buffer GlobalBackBuffer = {};
 global_variable LPDIRECTSOUNDBUFFER GlobalSecondaryAudioBuffer = {};
+global_variable int64 GlobalPerfCountFrequency = 0;
 
 internal void Win32LoadXInput(void) {
   // TODO: diagnostic log - which version was used
@@ -496,7 +497,38 @@ Win32ProcessPendingMessages(game_controller_input *KeyboardController) {
   }
 }
 
+inline LARGE_INTEGER Win32GetWallClock() {
+  LARGE_INTEGER Result;
+  QueryPerformanceCounter(&Result);
+
+  return Result;
+}
+
+inline real32 Win32GetSecondsElapsed(LARGE_INTEGER Start, LARGE_INTEGER End) {
+  real32 Result = ((real32)(End.QuadPart - Start.QuadPart) /
+                   (real32)GlobalPerfCountFrequency);
+
+  return Result;
+}
+
 internal void Win32ProcessLoop(HWND Window) {
+  LARGE_INTEGER QueryPerformanceFrequencyResult;
+  QueryPerformanceFrequency(&QueryPerformanceFrequencyResult);
+  GlobalPerfCountFrequency = QueryPerformanceFrequencyResult.QuadPart;
+
+  /*
+   * NOTE: Set the Windows scheduler granularity to 1ms
+   * So that the game loop sleep can be more granular.
+   */
+  UINT DesiredSchedulerMS = 1;
+  bool SleepIsGranular =
+      (timeBeginPeriod(DesiredSchedulerMS) == TIMERR_NOERROR);
+
+  // TODO: How to reliably query monitor refresh-rate on Windows?
+  int MonitorRefreshHz = 60;
+  int GameUpdateHz = MonitorRefreshHz / 2;
+  real32 TargetSecondsPerFrame = 1.0f / (real32)GameUpdateHz;
+
   // NOTE: Graphics Test
   int XOffset = 0;
   int YOffset = 0;
@@ -544,13 +576,7 @@ internal void Win32ProcessLoop(HWND Window) {
     game_input *OldInput = &Input[1];
 
     uint64 LastCycleCount = __rdtsc();
-
-    LARGE_INTEGER QueryPerformanceFrequencyResult;
-    QueryPerformanceFrequency(&QueryPerformanceFrequencyResult);
-    int64 PerfCountFrequency = QueryPerformanceFrequencyResult.QuadPart;
-
-    LARGE_INTEGER LastCounter;
-    QueryPerformanceCounter(&LastCounter);
+    LARGE_INTEGER LastCounter = Win32GetWallClock();
 
     while (GlobalRunning) {
 
@@ -713,26 +739,53 @@ internal void Win32ProcessLoop(HWND Window) {
 
       GameUpdateAndRender(&GameMemory, NewInput, &Buffer, &SoundBuffer);
 
+      if (SoundIsValid) {
+        Win32FillSoundBuffer(&SoundOutput, ByteToLock, BytesToWrite,
+                             &SoundBuffer);
+      }
+
+      LARGE_INTEGER WorkCounter = Win32GetWallClock();
+      real32 WorkSecondsElapsed =
+          Win32GetSecondsElapsed(LastCounter, WorkCounter);
+
+      // TODO: Need more tuning/testing, probably buggy!
+      real32 SecondsElapsedForFrame = WorkSecondsElapsed;
+      if (SecondsElapsedForFrame < TargetSecondsPerFrame) {
+        while (SecondsElapsedForFrame < TargetSecondsPerFrame) {
+          if (SleepIsGranular) {
+            DWORD SleepMS = (DWORD)(1000.0f * (TargetSecondsPerFrame -
+                                               SecondsElapsedForFrame));
+            Sleep(SleepMS);
+          }
+          SecondsElapsedForFrame =
+              Win32GetSecondsElapsed(LastCounter, Win32GetWallClock());
+        }
+      } else {
+        // TODO: MISSED FRAME RATE!
+        // TODO: Logging
+      }
+
       HDC DeviceContext = GetDC(Window);
       win32_window_dimension Dimension = Win32GetWindowDimension(Window);
       Win32DisplayBufferInWindow(&GlobalBackBuffer, DeviceContext,
                                  Dimension.Width, Dimension.Height);
       ReleaseDC(Window, DeviceContext);
 
-      if (SoundIsValid) {
-        Win32FillSoundBuffer(&SoundOutput, ByteToLock, BytesToWrite,
-                             &SoundBuffer);
-      }
+      // TODO: Should I clear these here?
+      game_input *Temp = NewInput;
+      NewInput = OldInput;
+      OldInput = Temp;
+
+      LARGE_INTEGER EndCounter = Win32GetWallClock();
 
       uint64 EndCycleCount = __rdtsc();
       int64 CyclesElapsed = EndCycleCount - LastCycleCount;
 
-      LARGE_INTEGER EndCounter;
-      QueryPerformanceCounter(&EndCounter);
-      int64 CounterElapsed = EndCounter.QuadPart - LastCounter.QuadPart;
-      real32 MSPerFrame = (real32)(((real32)(1000 * CounterElapsed)) /
-                                   ((real32)PerfCountFrequency));
-      real32 FPS = (((real32)PerfCountFrequency) / ((real32)CounterElapsed));
+      real32 MSPerFrame =
+          1000.0f * Win32GetSecondsElapsed(LastCounter, EndCounter);
+      // real32 FPS = (((real32)GlobalPerfCountFrequency) /
+      // ((real32)CounterElapsed));
+      real32 FPS = 0.0f;
       real32 MCPF = (real32)(((real32)CyclesElapsed) / (1000.0f * 1000.0f));
 
       char StringBuffer[256];
@@ -740,13 +793,8 @@ internal void Win32ProcessLoop(HWND Window) {
                 FPS, MCPF);
       OutputDebugStringA(StringBuffer);
 
-      LastCycleCount = EndCycleCount;
       LastCounter = EndCounter;
-
-      game_input *Temp = NewInput;
-      NewInput = OldInput;
-      OldInput = Temp;
-      // TODO: Should I clear these here?
+      LastCycleCount = EndCycleCount;
     }
   }
 }

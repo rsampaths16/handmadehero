@@ -40,4 +40,4 @@ target_compile_options(
 if(ARCH_32BIT)
   target_link_options(HandmadeHero PRIVATE -subsystem:windows -version:5.1)
 endif()
-target_link_libraries(HandmadeHero user32)
+target_link_libraries(HandmadeHero user32 gdi32 winmm)
