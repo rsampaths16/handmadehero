@@ -726,6 +726,10 @@ internal void Win32ProcessLoop(HWND Window) {
         SoundIsValid = true;
       }
 
+      /*
+       * TODO: Sound is wrong now, because we haven't upgraded to sync
+       * with the new framerate logic
+       */
       game_sound_output_buffer SoundBuffer = {};
       SoundBuffer.SamplesPerSecond = SoundOutput.SamplesPerSecond;
       SoundBuffer.SampleCount = BytesToWrite / SoundOutput.BytesPerSample;
@@ -751,12 +755,17 @@ internal void Win32ProcessLoop(HWND Window) {
       // TODO: Need more tuning/testing, probably buggy!
       real32 SecondsElapsedForFrame = WorkSecondsElapsed;
       if (SecondsElapsedForFrame < TargetSecondsPerFrame) {
-        while (SecondsElapsedForFrame < TargetSecondsPerFrame) {
-          if (SleepIsGranular) {
-            DWORD SleepMS = (DWORD)(1000.0f * (TargetSecondsPerFrame -
-                                               SecondsElapsedForFrame));
+        if (SleepIsGranular) {
+          DWORD SleepMS = (DWORD)(1000.0f * (TargetSecondsPerFrame -
+                                             SecondsElapsedForFrame));
+          if (SleepMS > 0) {
             Sleep(SleepMS);
           }
+        }
+
+        Assert(Win32GetSecondsElapsed(LastCounter, Win32GetWallClock()) <
+               TargetSecondsPerFrame);
+        while (SecondsElapsedForFrame < TargetSecondsPerFrame) {
           SecondsElapsedForFrame =
               Win32GetSecondsElapsed(LastCounter, Win32GetWallClock());
         }
