@@ -897,9 +897,10 @@ internal void Win32ProcessLoop(HWND Window) {
 #if HANDMADE_INTERNAL
       // NOTE: This is debug code
       {
+        Assert(DebugTimeMarkerIndex < ArrayCount(DebugTimeMarkers));
         win32_debug_time_marker *Marker =
             &DebugTimeMarkers[DebugTimeMarkerIndex++];
-        if (DebugTimeMarkerIndex > ArrayCount(DebugTimeMarkers)) {
+        if (DebugTimeMarkerIndex == ArrayCount(DebugTimeMarkers)) {
           DebugTimeMarkerIndex = 0;
         }
         Marker->PlayCursor = PlayCursor;
