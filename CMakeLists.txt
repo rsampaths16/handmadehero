@@ -36,6 +36,7 @@ target_compile_options(
   -wd4201
   -wd4100
   -wd4189
+  -wd4456
 )
 if(ARCH_32BIT)
   target_link_options(HandmadeHero PRIVATE -subsystem:windows -version:5.1)
