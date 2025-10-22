@@ -12,16 +12,17 @@ project(
 option(ARCH_32BIT "Build for 32bit platform" OFF)
 
 set(CMAKE_BUILD_TYPE RelWithDebInfo)
-add_executable(HandmadeHero win32_handmade.cpp)
-set_target_properties(HandmadeHero PROPERTIES WIN32_EXECUTABLE TRUE)
+
+add_library(handmade SHARED handmade.cpp)
+set_target_properties(handmade PROPERTIES WIN32_EXECUTABLE TRUE)
 target_compile_definitions(
-  HandmadeHero
+  handmade
   PUBLIC
   HANDMADE_SLOW=1
   HANDMADE_INTERNAL=1
 )
 target_compile_options(
-  HandmadeHero
+  handmade
   BEFORE
   PRIVATE
   -MT
@@ -39,6 +40,46 @@ target_compile_options(
   -wd4456
 )
 if(ARCH_32BIT)
-  target_link_options(HandmadeHero PRIVATE -subsystem:windows -version:5.1)
+  target_link_options(handmade PRIVATE -subsystem:windows -version:5.1)
+else()
+  target_link_options(
+    handmade
+    PRIVATE
+    "/EXPORT:GameUpdateAndRender"
+    "/EXPORT:GameGetSoundSamples"
+  )
 endif()
-target_link_libraries(HandmadeHero user32 gdi32 winmm)
+target_link_libraries(handmade)
+
+add_executable(win32_handmade win32_handmade.cpp)
+set_target_properties(win32_handmade PROPERTIES WIN32_EXECUTABLE TRUE)
+target_compile_definitions(
+  win32_handmade
+  PUBLIC
+  HANDMADE_SLOW=1
+  HANDMADE_INTERNAL=1
+)
+target_compile_options(
+  win32_handmade
+  BEFORE
+  PRIVATE
+  -MT
+  -nologo
+  -Gm-
+  -GR-
+  -EHa-
+  -Od
+  -Oi
+  -WX
+  -W4
+  -wd4201
+  -wd4100
+  -wd4189
+  -wd4456
+)
+if(ARCH_32BIT)
+  target_link_options(win32_handmade PRIVATE -subsystem:windows -version:5.1)
+else()
+  target_link_options(win32_handmade PRIVATE)
+endif()
+target_link_libraries(win32_handmade user32 gdi32 winmm)

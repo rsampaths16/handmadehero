@@ -39,8 +39,7 @@ internal void RenderTestGradient(game_offscreen_buffer *Buffer, int BlueOffset,
   }
 }
 
-internal void GameUpdateAndRender(game_memory *Memory, game_input *Input,
-                                  game_offscreen_buffer *Buffer) {
+extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender) {
   Assert(
       (&Input->Controllers[0].Terminator - &Input->Controllers[0].Buttons[0]) ==
       (ArrayCount(Input->Controllers[0].Buttons) - 1));
@@ -48,10 +47,11 @@ internal void GameUpdateAndRender(game_memory *Memory, game_input *Input,
   game_state *GameState = (game_state *)Memory->PermanentStorage;
   if (!Memory->IsInitialized) {
     char *Filename = __FILE__;
-    debug_read_file_result File = DEBUGPlatformReadEntireFile(Filename);
+    debug_read_file_result File = Memory->DEBUGPlatformReadEntireFile(Filename);
     if (File.Contents) {
-      DEBUGPlatformWriteEntireFile("test.out", File.ContentSize, File.Contents);
-      DEBUGPlatformFreeFileMemory(File.Contents);
+      Memory->DEBUGPlatformWriteEntireFile("test.out", File.ContentSize,
+                                           File.Contents);
+      Memory->DEBUGPlatformFreeFileMemory(File.Contents);
     }
 
     GameState->BlueOffset = 0;
@@ -87,8 +87,7 @@ internal void GameUpdateAndRender(game_memory *Memory, game_input *Input,
   RenderTestGradient(Buffer, GameState->BlueOffset, GameState->GreenOffset);
 }
 
-internal void GameGetSoundSamples(game_memory *Memory,
-                                  game_sound_output_buffer *SoundBuffer) {
+extern "C" GAME_GET_SOUND_SAMPLES(GameGetSoundSamples) {
   game_state *GameState = (game_state *)Memory->PermanentStorage;
   GameSoundOutput(SoundBuffer, GameState->ToneHz);
 }

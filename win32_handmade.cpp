@@ -1,6 +1,6 @@
 #include "win32_handmade.h"
 #include "common_used_defs.h"
-#include "handmade.cpp"
+#include "handmade.h"
 
 #include <dsound.h>
 #include <malloc.h>
@@ -35,6 +35,36 @@ global_variable win32_offscreen_buffer GlobalBackBuffer = {};
 global_variable LPDIRECTSOUNDBUFFER GlobalSecondaryAudioBuffer = {};
 global_variable int64 GlobalPerfCountFrequency = 0;
 
+struct win32_game_code {
+  HMODULE GameCodeDLL;
+  game_update_and_render *UpdateAndRender;
+  game_get_sound_samples *GetSoundSamples;
+  bool IsValid;
+};
+
+internal win32_game_code Win32LoadGameCode(void) {
+  win32_game_code Result = {};
+
+  Result.GameCodeDLL = LoadLibraryA("handmade.dll");
+  if (Result.GameCodeDLL != NULL) {
+    Result.UpdateAndRender = (game_update_and_render *)GetProcAddress(
+        Result.GameCodeDLL, "GameUpdateAndRender");
+    Result.GetSoundSamples = (game_get_sound_samples *)GetProcAddress(
+        Result.GameCodeDLL, "GameGetSoundSamples");
+
+    Result.IsValid =
+        (Result.UpdateAndRender != NULL) && (Result.GetSoundSamples != NULL);
+  }
+
+  if (!Result.IsValid) {
+    // TODO: log diagnostic
+    Result.UpdateAndRender = GameUpdateAndRenderStub;
+    Result.GetSoundSamples = GameGetSoundSamplesStub;
+  }
+
+  return Result;
+}
+
 internal void Win32LoadXInput(void) {
   // TODO: diagnostic log - which version was used
   HMODULE XInputLibrary = LoadLibraryA("xinput9_1_0.dll");
@@ -60,7 +90,11 @@ internal void Win32LoadXInput(void) {
                       LPUNKNOWN pUnkOuter)
 typedef DIRECT_SOUND_CREATE(direct_sound_create);
 
-internal debug_read_file_result DEBUGPlatformReadEntireFile(char *Filename) {
+DEBUG_PLATFORM_FREE_FILE_MEMORY(DEBUGPlatformFreeFileMemory) {
+  VirtualFree(Memory, 0, MEM_RELEASE);
+}
+
+DEBUG_PLATFORM_READ_ENTIRE_FILE(DEBUGPlatformReadEntireFile) {
   debug_read_file_result Result = {};
   HANDLE FileHandle = CreateFileA(Filename, GENERIC_READ, FILE_SHARE_READ, NULL,
                                   OPEN_EXISTING, 0, 0);
@@ -96,12 +130,7 @@ internal debug_read_file_result DEBUGPlatformReadEntireFile(char *Filename) {
   return Result;
 }
 
-internal void DEBUGPlatformFreeFileMemory(void *Memory) {
-  VirtualFree(Memory, 0, MEM_RELEASE);
-}
-
-internal bool DEBUGPlatformWriteEntireFile(char *Filename, uint32 MemorySize,
-                                           void *Memory) {
+DEBUG_PLATFORM_WRITE_ENTIRE_FILE(DEBUGPlatformWriteEntireFile) {
   bool Result = false;
 
   HANDLE FileHandle =
@@ -628,6 +657,8 @@ inline real32 Win32GetSecondsElapsed(LARGE_INTEGER Start, LARGE_INTEGER End) {
 }
 
 internal void Win32ProcessLoop(HWND Window) {
+  win32_game_code Game = Win32LoadGameCode();
+
   LARGE_INTEGER QueryPerformanceFrequencyResult;
   QueryPerformanceFrequency(&QueryPerformanceFrequencyResult);
   GlobalPerfCountFrequency = QueryPerformanceFrequencyResult.QuadPart;
@@ -696,6 +727,9 @@ internal void Win32ProcessLoop(HWND Window) {
   GameMemory.IsInitialized = false;
   GameMemory.PermanentStorageSize = Megabytes(64);
   GameMemory.TransientStorageSize = Gigabytes(4);
+  GameMemory.DEBUGPlatformFreeFileMemory = &DEBUGPlatformFreeFileMemory;
+  GameMemory.DEBUGPlatformReadEntireFile = &DEBUGPlatformReadEntireFile;
+  GameMemory.DEBUGPlatformWriteEntireFile = &DEBUGPlatformWriteEntireFile;
 
   uint64 TotalSize =
       GameMemory.PermanentStorageSize + GameMemory.TransientStorageSize;
@@ -854,7 +888,7 @@ internal void Win32ProcessLoop(HWND Window) {
         Buffer.Height = GlobalBackBuffer.Height;
         Buffer.Pitch = GlobalBackBuffer.Pitch;
 
-        GameUpdateAndRender(&GameMemory, NewInput, &Buffer);
+        Game.UpdateAndRender(&GameMemory, NewInput, &Buffer);
 
         LARGE_INTEGER AudioWallClock = Win32GetWallClock();
         real32 FromBeginToAudioSeconds =
@@ -937,7 +971,7 @@ internal void Win32ProcessLoop(HWND Window) {
           SoundBuffer.SampleCount = BytesToWrite / SoundOutput.BytesPerSample;
           SoundBuffer.Samples = Samples;
 
-          GameGetSoundSamples(&GameMemory, &SoundBuffer);
+          Game.GetSoundSamples(&GameMemory, &SoundBuffer);
 
 #if HANDMADE_INTERNAL
           win32_debug_time_marker *Marker =

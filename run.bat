@@ -1,9 +1,9 @@
 @echo off
 
-rem Trying to kill any running instance of HandmadeHero.exe
-taskkill /IM HandmadeHero.exe /F >nul 2>&1
+rem Trying to kill any running instance of win32_handmade.exe
+taskkill /IM win32_handmade.exe /F >nul 2>&1
 if %ERRORLEVEL% NEQ 0 (
-    echo Failed to kill HandmadeHero.exe or no process running.
+    echo Failed to kill win32_handmade.exe or no process running.
 )
 
 rem Run cmake to configure the build
@@ -21,9 +21,9 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 rem Start the application
-start "" build\Debug\HandmadeHero.exe
+start "" build\Debug\win32_handmade.exe
 if %ERRORLEVEL% NEQ 0 (
-    echo Failed to start HandmadeHero.exe.
+    echo Failed to start win32_handmade.exe.
     exit /b 1
 )
 
