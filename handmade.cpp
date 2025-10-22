@@ -16,6 +16,10 @@ internal void GameSoundOutput(game_sound_output_buffer *SoundBuffer,
     *SampleOut++ = SampleValue;
 
     tSine += ((2.0f * PI32) / ((real32)WavePeriod));
+
+    if (tSine > (2.0f * PI32)) {
+      tSine -= (2.0f * PI32);
+    }
   }
 }
 
