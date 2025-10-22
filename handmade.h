@@ -107,7 +107,12 @@ inline game_controller_input *GetController(game_input *Input,
 }
 
 internal void GameUpdateAndRender(game_memory *Memory, game_input *Input,
-                                  game_offscreen_buffer *Buffer,
+                                  game_offscreen_buffer *Buffer);
+
+// NOTE: The current expectation is for this function to be very fast ( < 1ms )
+// TODO: Reduce the pressure on this function's performance via profiling &
+// optimization
+internal void GameGetSoundSamples(game_memory *Memory,
                                   game_sound_output_buffer *SoundBuffer);
 
 #endif
