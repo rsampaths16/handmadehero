@@ -100,6 +100,7 @@ struct game_state {
   int ToneHz;
   int BlueOffset;
   int GreenOffset;
+  real32 tSine;
 };
 
 struct game_input {
