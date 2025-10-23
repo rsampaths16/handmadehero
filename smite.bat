@@ -1,2 +1,2 @@
 @echo off
-taskkill /IM HandmadeHero.exe /F >nul 2>&1
+taskkill /IM win32_handmade.exe /F >nul 2>&1
