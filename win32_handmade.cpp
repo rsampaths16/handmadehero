@@ -35,11 +35,25 @@ global_variable win32_offscreen_buffer GlobalBackBuffer = {};
 global_variable LPDIRECTSOUNDBUFFER GlobalSecondaryAudioBuffer = {};
 global_variable int64 GlobalPerfCountFrequency = 0;
 
-internal win32_game_code Win32LoadGameCode(void) {
+inline FILETIME Win32GetLastWriteTime(char *Filename) {
+  FILETIME LastWriteTime = {};
+
+  WIN32_FILE_ATTRIBUTE_DATA FileInfo = {};
+  if (GetFileAttributesExA(Filename, GetFileExInfoStandard, &FileInfo) != 0) {
+    LastWriteTime = FileInfo.ftLastWriteTime;
+  }
+
+  return LastWriteTime;
+}
+
+internal win32_game_code Win32LoadGameCode(char *SourceDLLName) {
   win32_game_code Result = {};
 
-  CopyFile("handmade.dll", "handmade_hotswap.dll", FALSE);
-  Result.GameCodeDLL = LoadLibraryA("handmade_hotswap.dll");
+  Result.DLLLastWriteTime = Win32GetLastWriteTime(SourceDLLName);
+
+  char *TempDLLName = "handmade_hotswap.dll";
+  CopyFile(SourceDLLName, TempDLLName, FALSE);
+  Result.GameCodeDLL = LoadLibraryA(TempDLLName);
   if (Result.GameCodeDLL != NULL) {
     Result.UpdateAndRender = (game_update_and_render *)GetProcAddress(
         Result.GameCodeDLL, "GameUpdateAndRender");
@@ -761,14 +775,14 @@ internal void Win32ProcessLoop(HWND Window) {
     real32 AudioLatencySeconds = 0.0f;
     bool SoundIsValid = false;
 
-    win32_game_code Game = Win32LoadGameCode();
-    uint32 LoadCounter = 0;
+    char *SourceDLLName = "handmade.dll";
+    win32_game_code Game = Win32LoadGameCode(SourceDLLName);
 
     while (GlobalRunning) {
-      if (LoadCounter++ > 120) {
+      FILETIME NewDLLWriteTime = Win32GetLastWriteTime(SourceDLLName);
+      if (CompareFileTime(&NewDLLWriteTime, &Game.DLLLastWriteTime) == 1) {
         Win32UnloadGameCode(&Game);
-        Game = Win32LoadGameCode();
-        LoadCounter = 0;
+        Game = Win32LoadGameCode(SourceDLLName);
       }
 
       game_controller_input *OldKeyboardController = GetController(OldInput, 0);
