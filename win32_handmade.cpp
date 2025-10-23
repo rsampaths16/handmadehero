@@ -45,7 +45,8 @@ struct win32_game_code {
 internal win32_game_code Win32LoadGameCode(void) {
   win32_game_code Result = {};
 
-  Result.GameCodeDLL = LoadLibraryA("handmade.dll");
+  CopyFile("handmade.dll", "handmade_hotswap.dll", FALSE);
+  Result.GameCodeDLL = LoadLibraryA("handmade_hotswap.dll");
   if (Result.GameCodeDLL != NULL) {
     Result.UpdateAndRender = (game_update_and_render *)GetProcAddress(
         Result.GameCodeDLL, "GameUpdateAndRender");
@@ -62,7 +63,20 @@ internal win32_game_code Win32LoadGameCode(void) {
     Result.GetSoundSamples = GameGetSoundSamplesStub;
   }
 
+  OutputDebugStringA("Hotloaded Handmade Hotswap DLL\n");
+
   return Result;
+}
+
+internal void Win32UnloadGameCode(win32_game_code *GameCode) {
+  if (GameCode->GameCodeDLL) {
+    FreeLibrary(GameCode->GameCodeDLL);
+    GameCode->GameCodeDLL = NULL;
+  }
+
+  GameCode->UpdateAndRender = GameUpdateAndRenderStub;
+  GameCode->GetSoundSamples = GameGetSoundSamplesStub;
+  GameCode->IsValid = false;
 }
 
 internal void Win32LoadXInput(void) {
@@ -657,8 +671,6 @@ inline real32 Win32GetSecondsElapsed(LARGE_INTEGER Start, LARGE_INTEGER End) {
 }
 
 internal void Win32ProcessLoop(HWND Window) {
-  win32_game_code Game = Win32LoadGameCode();
-
   LARGE_INTEGER QueryPerformanceFrequencyResult;
   QueryPerformanceFrequency(&QueryPerformanceFrequencyResult);
   GlobalPerfCountFrequency = QueryPerformanceFrequencyResult.QuadPart;
@@ -756,7 +768,15 @@ internal void Win32ProcessLoop(HWND Window) {
     real32 AudioLatencySeconds = 0.0f;
     bool SoundIsValid = false;
 
+    win32_game_code Game = Win32LoadGameCode();
+    uint32 LoadCounter = 0;
+
     while (GlobalRunning) {
+      if (LoadCounter++ > 120) {
+        Win32UnloadGameCode(&Game);
+        Game = Win32LoadGameCode();
+        LoadCounter = 0;
+      }
 
       game_controller_input *OldKeyboardController = GetController(OldInput, 0);
       game_controller_input *NewKeyboardController = GetController(NewInput, 0);
