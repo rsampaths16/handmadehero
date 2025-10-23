@@ -40,7 +40,14 @@ target_compile_options(
   -wd4456
 )
 if(ARCH_32BIT)
-  target_link_options(handmade PRIVATE -subsystem:windows -version:5.1)
+  target_link_options(
+    handmade
+    PRIVATE
+    -subsystem:windows
+    -version:5.1
+    "/EXPORT:GameUpdateAndRender"
+    "/EXPORT:GameGetSoundSamples"
+  )
 else()
   target_link_options(
     handmade
