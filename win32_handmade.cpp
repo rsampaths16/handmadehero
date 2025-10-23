@@ -35,13 +35,6 @@ global_variable win32_offscreen_buffer GlobalBackBuffer = {};
 global_variable LPDIRECTSOUNDBUFFER GlobalSecondaryAudioBuffer = {};
 global_variable int64 GlobalPerfCountFrequency = 0;
 
-struct win32_game_code {
-  HMODULE GameCodeDLL;
-  game_update_and_render *UpdateAndRender;
-  game_get_sound_samples *GetSoundSamples;
-  bool IsValid;
-};
-
 internal win32_game_code Win32LoadGameCode(void) {
   win32_game_code Result = {};
 

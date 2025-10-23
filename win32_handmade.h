@@ -2,6 +2,7 @@
 #define WIN32_HANDMADE_H
 
 #include "common_used_defs.h"
+#include "handmade.h"
 #include <windows.h>
 struct win32_offscreen_buffer {
   /*
@@ -39,6 +40,13 @@ struct win32_debug_time_marker {
   DWORD ExpectedFlipPlayCursor;
   DWORD FlipPlayCursor;
   DWORD FlipWriteCursor;
+};
+
+struct win32_game_code {
+  HMODULE GameCodeDLL;
+  game_update_and_render *UpdateAndRender;
+  game_get_sound_samples *GetSoundSamples;
+  bool IsValid;
 };
 
 #endif
