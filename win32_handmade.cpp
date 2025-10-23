@@ -70,8 +70,6 @@ internal win32_game_code Win32LoadGameCode(char *SourceDLLName) {
     Result.GetSoundSamples = GameGetSoundSamplesStub;
   }
 
-  OutputDebugStringA("Hotloaded Handmade Hotswap DLL\n");
-
   return Result;
 }
 
