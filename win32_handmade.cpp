@@ -46,12 +46,12 @@ inline FILETIME Win32GetLastWriteTime(char *Filename) {
   return LastWriteTime;
 }
 
-internal win32_game_code Win32LoadGameCode(char *SourceDLLName) {
+internal win32_game_code Win32LoadGameCode(char *SourceDLLName,
+                                           char *TempDLLName) {
   win32_game_code Result = {};
 
   Result.DLLLastWriteTime = Win32GetLastWriteTime(SourceDLLName);
 
-  char *TempDLLName = "handmade_hotswap.dll";
   CopyFile(SourceDLLName, TempDLLName, FALSE);
   Result.GameCodeDLL = LoadLibraryA(TempDLLName);
   if (Result.GameCodeDLL != NULL) {
@@ -675,7 +675,59 @@ inline real32 Win32GetSecondsElapsed(LARGE_INTEGER Start, LARGE_INTEGER End) {
   return Result;
 }
 
+void CatStrings(size_t SourceACount, char *SourceA, size_t SourceBCount,
+                char *SourceB, size_t DestCount, char *Dest) {
+
+  // TODO: Need better handling for out of bounds condition
+  if ((SourceACount + SourceBCount + 1) > DestCount) {
+    *Dest = 0;
+    return;
+  }
+
+  for (size_t Index = 0; Index < SourceACount; Index++) {
+    *Dest++ = *SourceA++;
+  }
+
+  for (size_t Index = 0; Index < SourceBCount; Index++) {
+    *Dest++ = *SourceB++;
+  }
+
+  *Dest++ = '\0';
+}
+
 internal void Win32ProcessLoop(HWND Window) {
+  /*
+   * NOTE: Don't use MAX_PATH in code that is user-facing, because it can be
+   * dangerous and lead to bad results
+   */
+  char EXEFileName[MAX_PATH];
+  DWORD SizeOfFilename =
+      GetModuleFileNameA(0, EXEFileName, sizeof(EXEFileName));
+
+  /*
+   * TODO: Use OS/Std provided libraries to handle path related operations. It
+   * is not reliable to use simple c-string manipulations as paths support
+   * unicode characters. The code used now is only for development stages.
+   */
+  char *OnePastLastSlash = EXEFileName;
+  for (char *Scan = EXEFileName; *Scan; Scan++) {
+    if (*Scan == '\\') {
+      OnePastLastSlash = Scan + 1;
+    }
+  }
+
+  char SourceGameCodeDLLFilename[] = "handmade.dll";
+  char SourceGameCodeDLLFullPath[MAX_PATH];
+  CatStrings(OnePastLastSlash - EXEFileName, EXEFileName,
+             sizeof(SourceGameCodeDLLFilename) - 1, SourceGameCodeDLLFilename,
+             sizeof(SourceGameCodeDLLFullPath), SourceGameCodeDLLFullPath);
+
+  char TempGameCodeDLLFilename[] = "handmade_temp.dll";
+  char TempGameCodeDLLFullPath[MAX_PATH];
+  CatStrings(OnePastLastSlash - EXEFileName, EXEFileName,
+             sizeof(TempGameCodeDLLFilename) - 1, TempGameCodeDLLFilename,
+             sizeof(TempGameCodeDLLFullPath), TempGameCodeDLLFullPath);
+
   LARGE_INTEGER QueryPerformanceFrequencyResult;
   QueryPerformanceFrequency(&QueryPerformanceFrequencyResult);
   GlobalPerfCountFrequency = QueryPerformanceFrequencyResult.QuadPart;
@@ -773,14 +825,16 @@ internal void Win32ProcessLoop(HWND Window) {
     real32 AudioLatencySeconds = 0.0f;
     bool SoundIsValid = false;
 
-    char *SourceDLLName = "handmade.dll";
-    win32_game_code Game = Win32LoadGameCode(SourceDLLName);
+    win32_game_code Game =
+        Win32LoadGameCode(SourceGameCodeDLLFullPath, TempGameCodeDLLFullPath);
 
     while (GlobalRunning) {
-      FILETIME NewDLLWriteTime = Win32GetLastWriteTime(SourceDLLName);
+      FILETIME NewDLLWriteTime =
+          Win32GetLastWriteTime(SourceGameCodeDLLFullPath);
       if (CompareFileTime(&NewDLLWriteTime, &Game.DLLLastWriteTime) == 1) {
         Win32UnloadGameCode(&Game);
-        Game = Win32LoadGameCode(SourceDLLName);
+        Game = Win32LoadGameCode(SourceGameCodeDLLFullPath,
+                                 TempGameCodeDLLFullPath);
       }
 
       game_controller_input *OldKeyboardController = GetController(OldInput, 0);
