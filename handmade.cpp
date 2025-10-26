@@ -68,12 +68,12 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender) {
     game_controller_input *Controller = GetController(Input, ControllerIndex);
     if (Controller->IsAnalog) {
       // TODO: Use analog movement tuning
-      GameState->BlueOffset -= (int)(4.0f * (Controller->StickAverageX));
+      GameState->BlueOffset += (int)(4.0f * (Controller->StickAverageX));
       GameState->ToneHz = 262 + (int)(128.0f * (Controller->StickAverageY));
     } else {
       // TODO: Use digital movement tuning
       if (Controller->MoveLeft.EndedDown) {
-        GameState->BlueOffset -= 1;
+        GameState->BlueOffset += 1;
       }
       if (Controller->MoveRight.EndedDown) {
         GameState->BlueOffset += 1;
@@ -81,7 +81,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender) {
     }
 
     if (Controller->ActionDown.EndedDown) {
-      GameState->GreenOffset += 1;
+      GameState->GreenOffset -= 1;
     }
   }
 
