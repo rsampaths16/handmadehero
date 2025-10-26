@@ -21,11 +21,11 @@ struct debug_read_file_result {
 typedef DEBUG_PLATFORM_FREE_FILE_MEMORY(debug_platform_free_file_memory);
 
 #define DEBUG_PLATFORM_READ_ENTIRE_FILE(name)                                  \
-  debug_read_file_result name(char *Filename)
+  debug_read_file_result name(char *FileName)
 typedef DEBUG_PLATFORM_READ_ENTIRE_FILE(debug_platform_read_entire_file);
 
 #define DEBUG_PLATFORM_WRITE_ENTIRE_FILE(name)                                 \
-  bool name(char *Filename, uint32 MemorySize, void *Memory)
+  bool name(char *FileName, uint32 MemorySize, void *Memory)
 typedef DEBUG_PLATFORM_WRITE_ENTIRE_FILE(debug_platform_write_entire_file);
 
 #endif

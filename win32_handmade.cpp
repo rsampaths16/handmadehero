@@ -35,11 +35,11 @@ global_variable win32_offscreen_buffer GlobalBackBuffer = {};
 global_variable LPDIRECTSOUNDBUFFER GlobalSecondaryAudioBuffer = {};
 global_variable int64 GlobalPerfCountFrequency = 0;
 
-inline FILETIME Win32GetLastWriteTime(char *Filename) {
+inline FILETIME Win32GetLastWriteTime(char *FileName) {
   FILETIME LastWriteTime = {};
 
   WIN32_FILE_ATTRIBUTE_DATA FileInfo = {};
-  if (GetFileAttributesExA(Filename, GetFileExInfoStandard, &FileInfo) != 0) {
+  if (GetFileAttributesExA(FileName, GetFileExInfoStandard, &FileInfo) != 0) {
     LastWriteTime = FileInfo.ftLastWriteTime;
   }
 
@@ -115,10 +115,10 @@ DEBUG_PLATFORM_FREE_FILE_MEMORY(DEBUGPlatformFreeFileMemory) {
 
 DEBUG_PLATFORM_READ_ENTIRE_FILE(DEBUGPlatformReadEntireFile) {
   debug_read_file_result Result = {};
-  HANDLE FileHandle = CreateFileA(Filename, GENERIC_READ, FILE_SHARE_READ, NULL,
+  HANDLE FileHandle = CreateFileA(FileName, GENERIC_READ, FILE_SHARE_READ, NULL,
                                   OPEN_EXISTING, 0, 0);
 
-  if (Filename != INVALID_HANDLE_VALUE) {
+  if (FileHandle != INVALID_HANDLE_VALUE) {
     LARGE_INTEGER FileSize;
     if (GetFileSizeEx(FileHandle, &FileSize)) {
       uint32 FileSize32 = SafeTruncateUInt64(FileSize.QuadPart);
@@ -153,8 +153,8 @@ DEBUG_PLATFORM_WRITE_ENTIRE_FILE(DEBUGPlatformWriteEntireFile) {
   bool Result = false;
 
   HANDLE FileHandle =
-      CreateFileA(Filename, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, 0);
-  if (Filename != INVALID_HANDLE_VALUE) {
+      CreateFileA(FileName, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, 0);
+  if (FileHandle != INVALID_HANDLE_VALUE) {
     DWORD BytesWritten;
     if (WriteFile(FileHandle, Memory, MemorySize, &BytesWritten, 0)) {
       Result = (BytesWritten == MemorySize);
@@ -701,7 +701,7 @@ internal void Win32ProcessLoop(HWND Window) {
    * dangerous and lead to bad results
    */
   char EXEFileName[MAX_PATH];
-  DWORD SizeOfFilename =
+  DWORD SizeOfFileName =
       GetModuleFileNameA(0, EXEFileName, sizeof(EXEFileName));
 
   /*
@@ -716,16 +716,16 @@ internal void Win32ProcessLoop(HWND Window) {
     }
   }
 
-  char SourceGameCodeDLLFilename[] = "handmade.dll";
+  char SourceGameCodeDLLFileName[] = "handmade.dll";
   char SourceGameCodeDLLFullPath[MAX_PATH];
   CatStrings(OnePastLastSlash - EXEFileName, EXEFileName,
-             sizeof(SourceGameCodeDLLFilename) - 1, SourceGameCodeDLLFilename,
+             sizeof(SourceGameCodeDLLFileName) - 1, SourceGameCodeDLLFileName,
              sizeof(SourceGameCodeDLLFullPath), SourceGameCodeDLLFullPath);
 
-  char TempGameCodeDLLFilename[] = "handmade_temp.dll";
+  char TempGameCodeDLLFileName[] = "handmade_temp.dll";
   char TempGameCodeDLLFullPath[MAX_PATH];
   CatStrings(OnePastLastSlash - EXEFileName, EXEFileName,
-             sizeof(TempGameCodeDLLFilename) - 1, TempGameCodeDLLFilename,
+             sizeof(TempGameCodeDLLFileName) - 1, TempGameCodeDLLFileName,
              sizeof(TempGameCodeDLLFullPath), TempGameCodeDLLFullPath);
 
   LARGE_INTEGER QueryPerformanceFrequencyResult;
