@@ -877,7 +877,7 @@ internal void Win32ProcessLoop(HWND Window) {
 
   GameMemory.IsInitialized = false;
   GameMemory.PermanentStorageSize = Megabytes(64);
-  GameMemory.TransientStorageSize = Gigabytes(4);
+  GameMemory.TransientStorageSize = Gigabytes(1);
   GameMemory.DEBUGPlatformFreeFileMemory = &DEBUGPlatformFreeFileMemory;
   GameMemory.DEBUGPlatformReadEntireFile = &DEBUGPlatformReadEntireFile;
   GameMemory.DEBUGPlatformWriteEntireFile = &DEBUGPlatformWriteEntireFile;
