@@ -966,6 +966,7 @@ internal void Win32ProcessLoop(HWND Window) {
         Buffer.Width = GlobalBackBuffer.Width;
         Buffer.Height = GlobalBackBuffer.Height;
         Buffer.Pitch = GlobalBackBuffer.Pitch;
+        Buffer.BytesPerPixel = GlobalBackBuffer.BytesPerPixel;
 
         Game.UpdateAndRender(&GameMemory, NewInput, &Buffer);
 
