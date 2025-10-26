@@ -1,5 +1,8 @@
 @echo off
 
+rem delete old PDBs
+del build\Debug\*.pdb
+
 rem Run cmake to configure the build
 cmake -S . -B build
 if %ERRORLEVEL% NEQ 0 (
@@ -16,9 +19,6 @@ if %ERRORLEVEL% NEQ 0 (
 
 rem Change current working directory to Debug
 cd build\Debug
-
-rem delete old PDBs
-del *.pdb
 
 rem Start the application
 start "" win32_handmade.exe
