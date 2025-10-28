@@ -1124,8 +1124,7 @@ internal void Win32ProcessLoop(HWND Window) {
           DWORD ExpectedBytesUntilFlip =
               (DWORD)((ExpectedSecondsLeftUntilFlip / TargetSecondsPerFrame) *
                       ExpectedSoundBytesPerFrame);
-          DWORD ExpectedFrameBoundaryByte =
-              PlayCursor + ExpectedSoundBytesPerFrame;
+          DWORD ExpectedFrameBoundaryByte = PlayCursor + ExpectedBytesUntilFlip;
 
           DWORD SafeWriteCursor = WriteCursor + SoundOutput.SafetyBytes;
           if (SafeWriteCursor < PlayCursor) {
