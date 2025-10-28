@@ -974,6 +974,7 @@ internal void Win32ProcessLoop(HWND Window) {
 
           if (ResponseStatus == ERROR_SUCCESS) {
             NewController->IsConnected = true;
+            NewController->IsAnalog = OldController->IsAnalog;
 
             // TODO: See if ControllerState.dwPacketNumber increments too
             // rapidly
