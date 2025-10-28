@@ -896,6 +896,10 @@ internal void Win32ProcessLoop(HWND Window) {
   Win32State.TotalSize =
       GameMemory.PermanentStorageSize + GameMemory.TransientStorageSize;
 
+  /*
+   * TODO: Use MEM_LARGE_PAGES and call adjust token priviledges to use them.
+   *  Avoid call them on Windows XP
+   */
   Win32State.GameMemoryBlock =
       (void *)VirtualAlloc(BaseAddress, Win32State.TotalSize,
                            MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
