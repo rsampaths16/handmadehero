@@ -541,11 +541,19 @@ internal real32 Win32ProcessXInputStickValue(SHORT Value,
   return Result;
 }
 
+internal void Win32GetInputFileLocation(win32_state *Win32State, int SlotIndex,
+                                        int DestCount, char *Dest) {
+  Assert(SlotIndex == 1);
+  Win32BuildEXEPathFileName(Win32State, "loop_edit.hmi", DestCount, Dest);
+}
+
 internal void Win32BeginRecordingInput(win32_state *Win32State,
                                        int InputRecordingIndex) {
   Win32State->InputRecordingIndex = InputRecordingIndex;
 
-  char *FileName = "foo.hmi";
+  char FileName[WIN32_STATE_FILE_NAME_COUNT];
+  Win32GetInputFileLocation(Win32State, Win32State->InputRecordingIndex,
+                            sizeof(FileName), FileName);
   Win32State->RecordingHandle =
       CreateFileA(FileName, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, 0);
 
@@ -565,7 +573,9 @@ internal void Win32BeginInputPlayBack(win32_state *Win32State,
                                       int InputPlayingIndex) {
   Win32State->InputPlayingIndex = InputPlayingIndex;
 
-  char *FileName = "foo.hmi";
+  char FileName[WIN32_STATE_FILE_NAME_COUNT];
+  Win32GetInputFileLocation(Win32State, Win32State->InputPlayingIndex,
+                            sizeof(FileName), FileName);
   Win32State->PlayBackHandle = CreateFileA(
       FileName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, 0);
 
