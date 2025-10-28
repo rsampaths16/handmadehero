@@ -400,12 +400,14 @@ internal LRESULT CALLBACK Win32MainWindowCallback(HWND Window, UINT Message,
     break;
   }
   case WM_ACTIVATEAPP: {
+#if 0
     if (WParam == TRUE) {
       SetLayeredWindowAttributes(Window, RGB(0, 0, 0), 255, LWA_ALPHA);
     } else {
       SetLayeredWindowAttributes(Window, RGB(0, 0, 0), 64, LWA_ALPHA);
     }
     break;
+#endif
   }
   case WM_SYSKEYDOWN:
   case WM_SYSKEYUP:
@@ -450,10 +452,11 @@ internal HWND Win32RegisterAndCreateWindow(HINSTANCE Instance,
                                            PWNDCLASSEXA WindowClassPtr) {
   ATOM WindowClassAtom = RegisterClassExA(WindowClassPtr);
   if (WindowClassAtom != 0) {
-    HWND Window = CreateWindowExA(
-        WS_EX_TOPMOST | WS_EX_LAYERED, "HandmadeHeroWindowClass",
-        "HandemadeHero", WS_OVERLAPPEDWINDOW | WS_VISIBLE, CW_USEDEFAULT,
-        CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, Instance, 0);
+    HWND Window = CreateWindowExA(0, // WS_EX_TOPMOST | WS_EX_LAYERED,
+                                  "HandmadeHeroWindowClass", "HandemadeHero",
+                                  WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+                                  CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+                                  CW_USEDEFAULT, 0, 0, Instance, 0);
     if (Window == NULL) {
       // TODO: Handle / log window creation failures
       OutputDebugStringA("Failure in window creation\n");
