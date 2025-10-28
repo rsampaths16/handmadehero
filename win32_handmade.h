@@ -45,6 +45,8 @@ struct win32_debug_time_marker {
 struct win32_game_code {
   HMODULE GameCodeDLL;
   FILETIME DLLLastWriteTime;
+
+  // IMPORTANT: The callbacks can be NULL, and must be checked before calling
   game_update_and_render *UpdateAndRender;
   game_get_sound_samples *GetSoundSamples;
   bool IsValid;

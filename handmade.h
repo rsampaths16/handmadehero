@@ -125,7 +125,6 @@ inline game_controller_input *GetController(game_input *Input,
   void name(game_memory *Memory, game_input *Input,                            \
             game_offscreen_buffer *Buffer)
 typedef GAME_UPDATE_AND_RENDER(game_update_and_render);
-GAME_UPDATE_AND_RENDER(GameUpdateAndRenderStub) {}
 
 // NOTE: The current expectation is for this function to be very fast ( < 1ms )
 // TODO: Reduce the pressure on this function's performance via profiling &
@@ -133,6 +132,5 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRenderStub) {}
 #define GAME_GET_SOUND_SAMPLES(name)                                           \
   void name(game_memory *Memory, game_sound_output_buffer *SoundBuffer)
 typedef GAME_GET_SOUND_SAMPLES(game_get_sound_samples);
-GAME_GET_SOUND_SAMPLES(GameGetSoundSamplesStub) {}
 
 #endif
