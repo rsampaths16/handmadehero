@@ -34,7 +34,7 @@ target_compile_options(
   handmade
   BEFORE
   PRIVATE
-  -MT
+  -MTd
   -nologo
   -Gm-
   -GR-
