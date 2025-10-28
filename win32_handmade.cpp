@@ -109,6 +109,59 @@ internal void Win32LoadXInput(void) {
                       LPUNKNOWN pUnkOuter)
 typedef DIRECT_SOUND_CREATE(direct_sound_create);
 
+void CatStrings(size_t SourceACount, char *SourceA, size_t SourceBCount,
+                char *SourceB, size_t DestCount, char *Dest) {
+
+  // TODO: Need better handling for out of bounds condition
+  if ((SourceACount + SourceBCount + 1) > DestCount) {
+    *Dest = 0;
+    return;
+  }
+
+  for (size_t Index = 0; Index < SourceACount; Index++) {
+    *Dest++ = *SourceA++;
+  }
+
+  for (size_t Index = 0; Index < SourceBCount; Index++) {
+    *Dest++ = *SourceB++;
+  }
+
+  *Dest++ = '\0';
+}
+
+internal void Win32GetEXEFileName(win32_state *State) {
+  DWORD SizeOfFileName =
+      GetModuleFileNameA(0, State->EXEFileName, sizeof(State->EXEFileName));
+
+  /*
+   * TODO: Use OS/Std provided libraries to handle path related operations. It
+   * is not reliable to use simple c-string manipulations as paths support
+   * unicode characters. The code used now is only for development stages.
+   */
+  State->OnePastLastEXEFileNameSlash = State->EXEFileName;
+  for (char *Scan = State->EXEFileName; *Scan; Scan++) {
+    if (*Scan == '\\') {
+      State->OnePastLastEXEFileNameSlash = Scan + 1;
+    }
+  }
+}
+
+internal int StringLength(char *String) {
+  int Length = 0;
+  while (String[Length] != 0) {
+    Length++;
+  }
+
+  return Length;
+}
+
+internal void Win32BuildEXEPathFileName(win32_state *State, char *FileName,
+                                        int DestCount, char *Dest) {
+  CatStrings(State->OnePastLastEXEFileNameSlash - State->EXEFileName,
+             State->EXEFileName, StringLength(FileName), FileName, DestCount,
+             Dest);
+}
+
 DEBUG_PLATFORM_FREE_FILE_MEMORY(DEBUGPlatformFreeFileMemory) {
   VirtualFree(Memory, 0, MEM_RELEASE);
 }
@@ -763,58 +816,22 @@ inline real32 Win32GetSecondsElapsed(LARGE_INTEGER Start, LARGE_INTEGER End) {
   return Result;
 }
 
-void CatStrings(size_t SourceACount, char *SourceA, size_t SourceBCount,
-                char *SourceB, size_t DestCount, char *Dest) {
-
-  // TODO: Need better handling for out of bounds condition
-  if ((SourceACount + SourceBCount + 1) > DestCount) {
-    *Dest = 0;
-    return;
-  }
-
-  for (size_t Index = 0; Index < SourceACount; Index++) {
-    *Dest++ = *SourceA++;
-  }
-
-  for (size_t Index = 0; Index < SourceBCount; Index++) {
-    *Dest++ = *SourceB++;
-  }
-
-  *Dest++ = '\0';
-}
-
 internal void Win32ProcessLoop(HWND Window) {
-  /*
-   * NOTE: Don't use MAX_PATH in code that is user-facing, because it can be
-   * dangerous and lead to bad results
-   */
-  char EXEFileName[MAX_PATH];
-  DWORD SizeOfFileName =
-      GetModuleFileNameA(0, EXEFileName, sizeof(EXEFileName));
+  win32_state Win32State = {};
+  Win32State.InputRecordingIndex = 0;
+  Win32State.InputPlayingIndex = 0;
 
-  /*
-   * TODO: Use OS/Std provided libraries to handle path related operations. It
-   * is not reliable to use simple c-string manipulations as paths support
-   * unicode characters. The code used now is only for development stages.
-   */
-  char *OnePastLastSlash = EXEFileName;
-  for (char *Scan = EXEFileName; *Scan; Scan++) {
-    if (*Scan == '\\') {
-      OnePastLastSlash = Scan + 1;
-    }
-  }
+  Win32GetEXEFileName(&Win32State);
 
-  char SourceGameCodeDLLFileName[] = "handmade.dll";
-  char SourceGameCodeDLLFullPath[MAX_PATH];
-  CatStrings(OnePastLastSlash - EXEFileName, EXEFileName,
-             sizeof(SourceGameCodeDLLFileName) - 1, SourceGameCodeDLLFileName,
-             sizeof(SourceGameCodeDLLFullPath), SourceGameCodeDLLFullPath);
+  char SourceGameCodeDLLFullPath[WIN32_STATE_FILE_NAME_COUNT];
+  Win32BuildEXEPathFileName(&Win32State, "handmade.dll",
+                            sizeof(SourceGameCodeDLLFullPath),
+                            SourceGameCodeDLLFullPath);
 
-  char TempGameCodeDLLFileName[] = "handmade_temp.dll";
-  char TempGameCodeDLLFullPath[MAX_PATH];
-  CatStrings(OnePastLastSlash - EXEFileName, EXEFileName,
-             sizeof(TempGameCodeDLLFileName) - 1, TempGameCodeDLLFileName,
-             sizeof(TempGameCodeDLLFullPath), TempGameCodeDLLFullPath);
+  char TempGameCodeDLLFullPath[WIN32_STATE_FILE_NAME_COUNT];
+  Win32BuildEXEPathFileName(&Win32State, "handmade_temp.dll",
+                            sizeof(TempGameCodeDLLFullPath),
+                            TempGameCodeDLLFullPath);
 
   LARGE_INTEGER QueryPerformanceFrequencyResult;
   QueryPerformanceFrequency(&QueryPerformanceFrequencyResult);
@@ -879,10 +896,6 @@ internal void Win32ProcessLoop(HWND Window) {
 #else
   LPVOID BaseAddress = 0;
 #endif
-
-  win32_state Win32State = {};
-  Win32State.InputRecordingIndex = 0;
-  Win32State.InputPlayingIndex = 0;
 
   game_memory GameMemory = {};
 

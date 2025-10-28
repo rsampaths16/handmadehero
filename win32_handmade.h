@@ -4,6 +4,9 @@
 #include "common_used_defs.h"
 #include "handmade.h"
 #include <windows.h>
+
+#define WIN32_STATE_FILE_NAME_COUNT MAX_PATH
+
 struct win32_offscreen_buffer {
   /*
    * NOTE: Each Pixel is 32-bits wide. Memory Order is BB GG RR XX.
@@ -61,6 +64,9 @@ struct win32_state {
 
   HANDLE PlayBackHandle;
   int InputPlayingIndex;
+
+  char EXEFileName[WIN32_STATE_FILE_NAME_COUNT];
+  char *OnePastLastEXEFileNameSlash;
 };
 
 #endif
