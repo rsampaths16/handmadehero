@@ -459,8 +459,8 @@ internal LRESULT CALLBACK Win32MainWindowCallback(HWND Window, UINT Message,
     } else {
       SetLayeredWindowAttributes(Window, RGB(0, 0, 0), 64, LWA_ALPHA);
     }
-    break;
 #endif
+    break;
   }
   case WM_SYSKEYDOWN:
   case WM_SYSKEYUP:
