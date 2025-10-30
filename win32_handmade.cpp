@@ -694,13 +694,13 @@ Win32ProcessPendingMessages(win32_state *Win32State,
           }
         } else if (VKCode == 'L') {
           if (IsKeyDown) {
-            if (Win32State->InputRecordingIndex == 0 &&
-                Win32State->InputPlayingIndex == 0) {
-              Win32BeginRecordingInput(Win32State, 1);
-            } else if (Win32State->InputRecordingIndex != 0 &&
-                       Win32State->InputPlayingIndex == 0) {
-              Win32EndRecordingInput(Win32State);
-              Win32BeginInputPlayBack(Win32State, 1);
+            if (Win32State->InputPlayingIndex == 0) {
+              if (Win32State->InputRecordingIndex == 0) {
+                Win32BeginRecordingInput(Win32State, 1);
+              } else if (Win32State->InputRecordingIndex != 0) {
+                Win32EndRecordingInput(Win32State);
+                Win32BeginInputPlayBack(Win32State, 1);
+              }
             } else {
               Win32EndInputPlayBack(Win32State);
             }
