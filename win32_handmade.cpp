@@ -422,9 +422,10 @@ internal void Win32DisplayBufferInWindow(win32_offscreen_buffer *Buffer,
 
 internal void Win32ProcessKeyboardMessage(game_button_state *NewState,
                                           bool IsDown) {
-  Assert(NewState->EndedDown != IsDown);
-  NewState->EndedDown = IsDown;
-  NewState->HalfTransitionCount++;
+  if (NewState->EndedDown != IsDown) {
+    NewState->EndedDown = IsDown;
+    NewState->HalfTransitionCount++;
+  }
 }
 
 internal void Win32ProcessXInputDigitalButton(DWORD XInputButtonState,
@@ -973,6 +974,23 @@ internal void Win32ProcessLoop(HWND Window) {
       Win32ProcessPendingMessages(&Win32State, NewKeyboardController);
 
       if (!GlobalPause) {
+        POINT MouseP = {};
+        GetCursorPos(&MouseP);
+        ScreenToClient(Window, &MouseP);
+        NewInput->MouseX = MouseP.x;
+        NewInput->MouseY = MouseP.y;
+        NewInput->MouseZ = 0; // TODO: Support Scroll-Wheel?
+        Win32ProcessKeyboardMessage(&NewInput->MouseButtons[0],
+                                    GetKeyState(VK_LBUTTON) & (1 << 16));
+        Win32ProcessKeyboardMessage(&NewInput->MouseButtons[1],
+                                    GetKeyState(VK_RBUTTON) & (1 << 16));
+        Win32ProcessKeyboardMessage(&NewInput->MouseButtons[2],
+                                    GetKeyState(VK_MBUTTON) & (1 << 16));
+        Win32ProcessKeyboardMessage(&NewInput->MouseButtons[3],
+                                    GetKeyState(VK_XBUTTON1) & (1 << 16));
+        Win32ProcessKeyboardMessage(&NewInput->MouseButtons[4],
+                                    GetKeyState(VK_XBUTTON2) & (1 << 16));
+
         /*
          * TODO: Need to not poll disconnected controllers to avoid x input
          * frame rate hit on older libraries.

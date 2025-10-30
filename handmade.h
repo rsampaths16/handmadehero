@@ -115,6 +115,18 @@ struct game_state {
 };
 
 struct game_input {
+  union {
+    game_button_state MouseButtons[5];
+    struct {
+      game_button_state MouseLeft;
+      game_button_state MouseRight;
+      game_button_state MouseMiddle;
+      game_button_state MouseXButton1;
+      game_button_state MouseXButton2;
+    };
+  };
+  int32 MouseX, MouseY, MouseZ;
+
   // TODO: Insert clock values here
   game_controller_input Controllers[5];
 };

@@ -128,6 +128,13 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender) {
 
   RenderTestGradient(Buffer, GameState->BlueOffset, GameState->GreenOffset);
   RenderPlayer(Buffer, GameState->PlayerX, GameState->PlayerY);
+  for (int ButtonIndex = 0; ButtonIndex < ArrayCount(Input->MouseButtons);
+       ButtonIndex++) {
+    if (Input->MouseButtons[ButtonIndex].EndedDown) {
+      RenderPlayer(Buffer, 10 + (20 * ButtonIndex), 10);
+    }
+  }
+  RenderPlayer(Buffer, Input->MouseX, Input->MouseY);
 }
 
 extern "C" GAME_GET_SOUND_SAMPLES(GameGetSoundSamples) {
