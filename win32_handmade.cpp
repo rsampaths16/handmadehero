@@ -860,10 +860,6 @@ internal void Win32ProcessLoop(HWND Window) {
   const int GameUpdateHz = MonitorRefreshHz / 2;
   real32 TargetSecondsPerFrame = 1.0f / (real32)GameUpdateHz;
 
-  // NOTE: Graphics Test
-  int XOffset = 0;
-  int YOffset = 0;
-
   // NOTE: Sound Test
   win32_sound_output SoundOutput;
   SoundOutput.SamplesPerSecond = 48000;
