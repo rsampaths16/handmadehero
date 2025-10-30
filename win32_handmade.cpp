@@ -751,6 +751,7 @@ inline void Win32DrawSoundBufferMarker(win32_offscreen_buffer *BackBuffer,
   Win32DebugDrawVertical(BackBuffer, X, Top, Bottom, Color);
 }
 
+#if 0
 internal void Win32DebugSyncDisplay(win32_offscreen_buffer *BackBuffer,
                                     int MarkerCount,
                                     win32_debug_time_marker *Markers,
@@ -824,6 +825,7 @@ internal void Win32DebugSyncDisplay(win32_offscreen_buffer *BackBuffer,
                                ThisMarker->FlipWriteCursor, WriteColor);
   }
 }
+#endif
 
 inline LARGE_INTEGER Win32GetWallClock() {
   LARGE_INTEGER Result;
@@ -1263,6 +1265,7 @@ internal void Win32ProcessLoop(HWND Window) {
           Marker->OutputLocation = ByteToLock;
           Marker->OutputByteCount = BytesToWrite;
           Marker->ExpectedFlipPlayCursor = ExpectedFrameBoundaryByte;
+#if 0
           DWORD UnwrappedWriteCursor = WriteCursor;
           if (WriteCursor < PlayCursor) {
             WriteCursor += SoundOutput.SecondaryBufferSize;
@@ -1280,6 +1283,7 @@ internal void Win32ProcessLoop(HWND Window) {
                     ByteToLock, TargetCursor, BytesToWrite, PlayCursor,
                     WriteCursor, AudioLatencyBytes, AudioLatencySeconds);
           OutputDebugStringA(TextBuffer);
+#endif
 #endif
           Win32FillSoundBuffer(&SoundOutput, ByteToLock, BytesToWrite,
                                &SoundBuffer);
@@ -1329,12 +1333,6 @@ internal void Win32ProcessLoop(HWND Window) {
 
         HDC DeviceContext = GetDC(Window);
         win32_window_dimension Dimension = Win32GetWindowDimension(Window);
-#if HANDMADE_INTERNAL
-        // TODO: this is wrong on the 0th index
-        Win32DebugSyncDisplay(&GlobalBackBuffer, ArrayCount(DebugTimeMarkers),
-                              DebugTimeMarkers, DebugTimeMarkerIndex - 1,
-                              &SoundOutput, TargetSecondsPerFrame);
-#endif
         Win32DisplayBufferInWindow(&GlobalBackBuffer, DeviceContext,
                                    Dimension.Width, Dimension.Height);
         ReleaseDC(Window, DeviceContext);
