@@ -73,11 +73,12 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender) {
   game_state *GameState = (game_state *)Memory->PermanentStorage;
   if (!Memory->IsInitialized) {
     char *FileName = __FILE__;
-    debug_read_file_result File = Memory->DEBUGPlatformReadEntireFile(FileName);
+    debug_read_file_result File =
+        Memory->DEBUGPlatformReadEntireFile(Thread, FileName);
     if (File.Contents) {
-      Memory->DEBUGPlatformWriteEntireFile("test.out", File.ContentSize,
+      Memory->DEBUGPlatformWriteEntireFile(Thread, "test.out", File.ContentSize,
                                            File.Contents);
-      Memory->DEBUGPlatformFreeFileMemory(File.Contents);
+      Memory->DEBUGPlatformFreeFileMemory(Thread, File.Contents);
     }
 
     GameState->BlueOffset = 0;

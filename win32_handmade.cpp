@@ -184,7 +184,7 @@ DEBUG_PLATFORM_READ_ENTIRE_FILE(DEBUGPlatformReadEntireFile) {
           // NOTE: Successfully read the file
           Result.ContentSize = FileSize32;
         } else {
-          DEBUGPlatformFreeFileMemory(Result.Contents);
+          DEBUGPlatformFreeFileMemory(Thread, Result.Contents);
           Result.Contents = 0;
         }
       } else {
@@ -1085,6 +1085,8 @@ internal void Win32ProcessLoop(HWND Window) {
           }
         }
 
+        thread_context Thread = {};
+
         game_offscreen_buffer Buffer = {};
         Buffer.Memory = GlobalBackBuffer.Memory;
         Buffer.Width = GlobalBackBuffer.Width;
@@ -1101,7 +1103,7 @@ internal void Win32ProcessLoop(HWND Window) {
         }
 
         if (Game.UpdateAndRender) {
-          Game.UpdateAndRender(&GameMemory, NewInput, &Buffer);
+          Game.UpdateAndRender(&Thread, &GameMemory, NewInput, &Buffer);
         }
 
         LARGE_INTEGER AudioWallClock = Win32GetWallClock();
@@ -1185,7 +1187,7 @@ internal void Win32ProcessLoop(HWND Window) {
           SoundBuffer.Samples = Samples;
 
           if (Game.GetSoundSamples) {
-            Game.GetSoundSamples(&GameMemory, &SoundBuffer);
+            Game.GetSoundSamples(&Thread, &GameMemory, &SoundBuffer);
           }
 
 #if HANDMADE_INTERNAL
