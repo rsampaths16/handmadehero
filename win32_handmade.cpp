@@ -857,9 +857,17 @@ internal void Win32ProcessLoop(HWND Window) {
       (timeBeginPeriod(DesiredSchedulerMS) == TIMERR_NOERROR);
 
   // TODO: How to reliably query monitor refresh-rate on Windows?
-  const int MonitorRefreshHz = 60;
-  const int GameUpdateHz = MonitorRefreshHz / 2;
-  real32 TargetSecondsPerFrame = 1.0f / (real32)GameUpdateHz;
+  int MonitorRefreshHz = 60;
+  HDC DC = GetDC(Window);
+  int Win32RefreshRate = GetDeviceCaps(DC, VREFRESH);
+  ReleaseDC(Window, DC);
+  if (Win32RefreshRate > 1) {
+    MonitorRefreshHz = Win32RefreshRate;
+  }
+
+  // TODO: optimize rendering to unlock more speed
+  real32 GameUpdateHz = (MonitorRefreshHz / 3.0f);
+  real32 TargetSecondsPerFrame = 1.0f / GameUpdateHz;
 
   // NOTE: Sound Test
   win32_sound_output SoundOutput;
@@ -868,15 +876,13 @@ internal void Win32ProcessLoop(HWND Window) {
   SoundOutput.BytesPerSample = sizeof(int16) * 2;
   SoundOutput.SecondaryBufferSize =
       SoundOutput.SamplesPerSecond * SoundOutput.BytesPerSample;
-  SoundOutput.WriteAheadSamples =
-      3 * (SoundOutput.SamplesPerSecond / GameUpdateHz);
 
   // TODO: Find out the lowest reasonable value for the safety bytes is, if
   // needed compute it dynamically
-  SoundOutput.SafetyBytes =
-      (((SoundOutput.SamplesPerSecond * SoundOutput.BytesPerSample)) /
-       GameUpdateHz) /
-      3;
+  SoundOutput.SafetyBytes = (int)(((((real32)SoundOutput.SamplesPerSecond *
+                                     (real32)SoundOutput.BytesPerSample)) /
+                                   GameUpdateHz) /
+                                  3.0f);
 
   Win32InitDSound(Window, SoundOutput.SamplesPerSecond,
                   SoundOutput.SecondaryBufferSize);
@@ -939,7 +945,7 @@ internal void Win32ProcessLoop(HWND Window) {
     LARGE_INTEGER FlipWallClock = Win32GetWallClock();
 
     int DebugTimeMarkerIndex = 0;
-    win32_debug_time_marker DebugTimeMarkers[GameUpdateHz / 2] = {};
+    win32_debug_time_marker DebugTimeMarkers[30] = {};
 
     DWORD AudioLatencyBytes = 0;
     real32 AudioLatencySeconds = 0.0f;
@@ -1160,8 +1166,9 @@ internal void Win32ProcessLoop(HWND Window) {
               SoundOutput.SecondaryBufferSize;
 
           DWORD ExpectedSoundBytesPerFrame =
-              (SoundOutput.SamplesPerSecond * SoundOutput.BytesPerSample) /
-              GameUpdateHz;
+              (DWORD)(((real32)SoundOutput.SamplesPerSecond *
+                       (real32)SoundOutput.BytesPerSample) /
+                      GameUpdateHz);
           real32 ExpectedSecondsLeftUntilFlip =
               (TargetSecondsPerFrame - FromBeginToAudioSeconds);
           DWORD ExpectedBytesUntilFlip =
