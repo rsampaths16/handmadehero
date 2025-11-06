@@ -103,16 +103,7 @@ struct game_memory {
   debug_platform_write_entire_file *DEBUGPlatformWriteEntireFile;
 };
 
-struct game_state {
-  int ToneHz;
-  int BlueOffset;
-  int GreenOffset;
-  real32 tSine;
-
-  int PlayerX;
-  int PlayerY;
-  real32 tJump;
-};
+struct game_state {};
 
 struct game_input {
   union {

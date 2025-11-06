@@ -10,7 +10,7 @@ internal void GameSoundOutput(game_state *GameState,
   int16 *SampleOut = SoundBuffer->Samples;
   for (int SampleIndex = 0; SampleIndex < SoundBuffer->SampleCount;
        SampleIndex++) {
-#if 1
+#if 0
     real32 SineValue = sinf(GameState->tSine);
     int16 SampleValue = (int16)(SineValue * ToneVolume);
 #else
@@ -19,27 +19,13 @@ internal void GameSoundOutput(game_state *GameState,
     *SampleOut++ = SampleValue;
     *SampleOut++ = SampleValue;
 
+#if 0
     GameState->tSine += ((2.0f * PI32) / ((real32)WavePeriod));
 
     if (GameState->tSine > (2.0f * PI32)) {
       GameState->tSine -= (2.0f * PI32);
     }
-  }
-}
-
-internal void RenderTestGradient(game_offscreen_buffer *Buffer, int BlueOffset,
-                                 int GreenOffset) {
-  uint8 *Row = (uint8 *)Buffer->Memory;
-  for (int Y = 0; Y < Buffer->Height; Y++) {
-
-    uint32 *Pixel = (uint32 *)Row;
-    for (int X = 0; X < Buffer->Width; X++) {
-      uint8 Blue = (uint8)(X + BlueOffset);
-      uint8 Green = (uint8)(Y + GreenOffset);
-
-      *Pixel++ = ((Green << 8) | Blue);
-    }
-    Row += Buffer->Pitch;
+#endif
   }
 }
 
@@ -72,23 +58,6 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender) {
   Assert(sizeof(game_state) <= Memory->PermanentStorageSize);
   game_state *GameState = (game_state *)Memory->PermanentStorage;
   if (!Memory->IsInitialized) {
-    char *FileName = __FILE__;
-    debug_read_file_result File =
-        Memory->DEBUGPlatformReadEntireFile(Thread, FileName);
-    if (File.Contents) {
-      Memory->DEBUGPlatformWriteEntireFile(Thread, "test.out", File.ContentSize,
-                                           File.Contents);
-      Memory->DEBUGPlatformFreeFileMemory(Thread, File.Contents);
-    }
-
-    GameState->BlueOffset = 0;
-    GameState->GreenOffset = 0;
-    GameState->ToneHz = 262;
-    GameState->tSine = 0.0f;
-    GameState->PlayerX = 100;
-    GameState->PlayerY = 100;
-    GameState->tJump = 0.0f;
-
     // TODO: Should this be done in the platform layer instead?
     Memory->IsInitialized = true;
   }
@@ -98,46 +67,31 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender) {
     game_controller_input *Controller = GetController(Input, ControllerIndex);
     if (Controller->IsAnalog) {
       // TODO: Use analog movement tuning
-      GameState->BlueOffset += (int)(4.0f * (Controller->StickAverageX));
-      GameState->ToneHz = 262 + (int)(128.0f * (Controller->StickAverageY));
     } else {
       // TODO: Use digital movement tuning
-      if (Controller->MoveLeft.EndedDown) {
-        GameState->BlueOffset += 1;
-      }
-      if (Controller->MoveRight.EndedDown) {
-        GameState->BlueOffset += 1;
-      }
-    }
-
-    GameState->PlayerX += (int)(4.0f * (Controller->StickAverageX));
-    GameState->PlayerY -= (int)(4.0f * (Controller->StickAverageY));
-
-    if (GameState->tJump > 0) {
-      GameState->PlayerY += (int)(5 * sinf(0.5f * PI32 * GameState->tJump));
-    }
-
-    if (Controller->ActionDown.EndedDown) {
-      GameState->tJump = 4.0f;
-    }
-    GameState->tJump -= 0.033f;
-    if (GameState->tJump < 0.0f) {
-      // GameState->tJump = 0.0f;
     }
   }
-
-  RenderTestGradient(Buffer, GameState->BlueOffset, GameState->GreenOffset);
-  RenderPlayer(Buffer, GameState->PlayerX, GameState->PlayerY);
-  for (int ButtonIndex = 0; ButtonIndex < ArrayCount(Input->MouseButtons);
-       ButtonIndex++) {
-    if (Input->MouseButtons[ButtonIndex].EndedDown) {
-      RenderPlayer(Buffer, 10 + (20 * ButtonIndex), 10);
-    }
-  }
-  RenderPlayer(Buffer, Input->MouseX, Input->MouseY);
 }
 
 extern "C" GAME_GET_SOUND_SAMPLES(GameGetSoundSamples) {
   game_state *GameState = (game_state *)Memory->PermanentStorage;
-  GameSoundOutput(GameState, SoundBuffer, GameState->ToneHz);
+  GameSoundOutput(GameState, SoundBuffer, 262);
 }
+
+/*
+internal void RenderTestGradient(game_offscreen_buffer *Buffer, int BlueOffset,
+                                 int GreenOffset) {
+  uint8 *Row = (uint8 *)Buffer->Memory;
+  for (int Y = 0; Y < Buffer->Height; Y++) {
+
+    uint32 *Pixel = (uint32 *)Row;
+    for (int X = 0; X < Buffer->Width; X++) {
+      uint8 Blue = (uint8)(X + BlueOffset);
+      uint8 Green = (uint8)(Y + GreenOffset);
+
+      *Pixel++ = ((Green << 8) | Blue);
+    }
+    Row += Buffer->Pitch;
+  }
+}
+*/
