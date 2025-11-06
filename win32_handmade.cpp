@@ -1385,7 +1385,7 @@ internal void Win32ProcessLoop(HWND Window) {
 int APIENTRY WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR Cmdline,
                      int ShowCode) {
   Win32LoadXInput();
-  Win32ResizeDIBSection(&GlobalBackBuffer, 1280, 720);
+  Win32ResizeDIBSection(&GlobalBackBuffer, 960, 540);
   WNDCLASSEXA WindowClass = Win32ConstructMainWindowClass(Instance);
   HWND Window = Win32RegisterAndCreateWindow(Instance, &WindowClass);
 
