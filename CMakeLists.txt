@@ -47,6 +47,7 @@ target_compile_options(
   -wd4100
   -wd4189
   -wd4456
+  -wd4505
 )
 if(ARCH_32BIT)
   target_link_options(
