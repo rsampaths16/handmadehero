@@ -985,6 +985,7 @@ internal void Win32ProcessLoop(HWND Window) {
     game_input Input[2] = {};
     game_input *NewInput = &Input[0];
     game_input *OldInput = &Input[1];
+    NewInput->SecondsToAdvanceOverUpdate = TargetSecondsPerFrame;
 
     uint64 LastCycleCount = __rdtsc();
     LARGE_INTEGER LastCounter = Win32GetWallClock();

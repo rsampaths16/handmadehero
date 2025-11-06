@@ -118,7 +118,7 @@ struct game_input {
   };
   int32 MouseX, MouseY, MouseZ;
 
-  // TODO: Insert clock values here
+  real32 SecondsToAdvanceOverUpdate;
   game_controller_input Controllers[5];
 };
 
