@@ -59,9 +59,6 @@ internal void DrawRectangle(game_offscreen_buffer *Buffer, real32 RealMinX,
     MaxY = Buffer->Height;
   }
 
-  uint8 *EndOfBuffer =
-      (uint8 *)Buffer->Memory + (Buffer->Pitch * Buffer->Height);
-
   uint8 *Row = ((uint8 *)Buffer->Memory + (MinX * Buffer->BytesPerPixel) +
                 (MinY * Buffer->Pitch));
   for (int Y = MinY; Y < MaxY; Y++) {
