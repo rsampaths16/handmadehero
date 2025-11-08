@@ -103,7 +103,10 @@ struct game_memory {
   debug_platform_write_entire_file *DEBUGPlatformWriteEntireFile;
 };
 
-struct game_state {};
+struct game_state {
+  real32 PlayerX;
+  real32 PlayerY;
+};
 
 struct game_input {
   union {

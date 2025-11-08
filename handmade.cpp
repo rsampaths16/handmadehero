@@ -100,6 +100,27 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender) {
       // TODO: Use analog movement tuning
     } else {
       // TODO: Use digital movement tuning
+      real32 dPlayerX = 0.0f;
+      real32 dPlayerY = 0.0f;
+
+      if (Controller->MoveLeft.EndedDown) {
+        dPlayerX = -1.0f;
+      }
+      if (Controller->MoveRight.EndedDown) {
+        dPlayerX = 1.0f;
+      }
+      if (Controller->MoveUp.EndedDown) {
+        dPlayerY = -1.0f;
+      }
+      if (Controller->MoveDown.EndedDown) {
+        dPlayerY = 1.0f;
+      }
+      dPlayerX *= 128;
+      dPlayerY *= 128;
+
+      // TODO: Diagonal will be faster! Fix once we have vectors
+      GameState->PlayerX += Input->dtForFrame * dPlayerX;
+      GameState->PlayerY += Input->dtForFrame * dPlayerY;
     }
   }
 
@@ -134,6 +155,16 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender) {
       DrawRectangle(Buffer, MinX, MinY, MaxX, MaxY, Grey, Grey, Grey);
     }
   }
+
+  real32 PlayerR = 1.0f;
+  real32 PlayerG = 1.0f;
+  real32 PlayerB = 0.0f;
+  real32 PlayerWidth = 0.75f * TileWidth;
+  real32 PlayerHeight = TileHeight;
+  real32 PlayerLeft = GameState->PlayerX - 0.5f * PlayerWidth;
+  real32 PlayerTop = GameState->PlayerY - PlayerHeight;
+  DrawRectangle(Buffer, PlayerLeft, PlayerTop, PlayerLeft + PlayerWidth,
+                PlayerTop + PlayerHeight, PlayerR, PlayerG, PlayerB);
 }
 
 extern "C" GAME_GET_SOUND_SAMPLES(GameGetSoundSamples) {
