@@ -985,7 +985,6 @@ internal void Win32ProcessLoop(HWND Window) {
     game_input Input[2] = {};
     game_input *NewInput = &Input[0];
     game_input *OldInput = &Input[1];
-    NewInput->dtForFrame = TargetSecondsPerFrame;
 
     uint64 LastCycleCount = __rdtsc();
     LARGE_INTEGER LastCounter = Win32GetWallClock();
@@ -1002,6 +1001,8 @@ internal void Win32ProcessLoop(HWND Window) {
         Win32LoadGameCode(SourceGameCodeDLLFullPath, TempGameCodeDLLFullPath);
 
     while (GlobalRunning) {
+      NewInput->dtForFrame = TargetSecondsPerFrame;
+
       FILETIME NewDLLWriteTime =
           Win32GetLastWriteTime(SourceGameCodeDLLFullPath);
       if (CompareFileTime(&NewDLLWriteTime, &Game.DLLLastWriteTime) == 1) {
