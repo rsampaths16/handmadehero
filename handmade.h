@@ -118,7 +118,7 @@ struct game_input {
   };
   int32 MouseX, MouseY, MouseZ;
 
-  real32 SecondsToAdvanceOverUpdate;
+  real32 dtForFrame;
   game_controller_input Controllers[5];
 };
 
